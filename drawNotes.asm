@@ -3,9 +3,19 @@
 jmp start
 
 
+
 %include "bitMaps.asm"
 
 
+
+clear_screen:
+    mov ah, 0x06       ; Scroll up function
+    mov al, 0          ; Number of lines to scroll (0 = clear entire screen)
+    mov bh, 0x07       ; Video page and attribute (07h = normal text)
+    mov cx, 0x0000     ; Upper-left corner of the screen (row 0, col 0)
+    mov dx, 0x184F     ; Lower-right corner (row 24, col 79)
+    int 0x10           ; Call BIOS interrupt 10h to clear the screen
+RET                    ; Return from subroutine
 
 
 DRAW_BITMAP: ;receives nine_bitmap
@@ -48,7 +58,58 @@ DRAW_BITMAP: ;receives nine_bitmap
 ret 6
 
 
+
 DRAW_BOX_NOTES:
+
+    push bp
+    mov bp,sp
+    pushA
+
+    push word  [start_y]
+    push word  [start_x]
+
+    mov bx, [bp+4]
+    mov  [start_x], bx
+    mov bx, [bp+6]
+    mov [start_y],bx
+   
+    mov bx,10 ;DIFFERENCE BETWEEN X COORDINATES FROM LEFT OF ONE NUMBER TO LEFT OF THE NUMBER NEXT TO IT, SAME FOR Y
+
+        mov cx,3 ;ROW COUNT
+
+            mov dx,3 ;COLUMN COUNT
+        PrintRow:
+            push word  [start_y]
+            push word  [start_x]
+            push one_bitmap
+            call DRAW_BITMAP
+            add [start_x],bx
+
+            dec dx
+            jnz PrintRow
+            mov dx,3 ; RESET COLUMN COUNT
+
+            push bx
+            mov bx,[bp+4]   ;RESET X
+            mov [start_x], bx ;RESET X IN START_X
+            pop bx
+
+            add [start_y],bx ;INCREMENT Y 
+
+
+            loop PrintRow
+    pop word [start_x]
+    pop word [start_y]
+
+    popA
+    mov sp,bp
+    pop bp
+
+RET 4
+
+
+
+DRAW__ALL_BOX_NOTES:
 
     push bp
     mov bp,sp
@@ -56,67 +117,41 @@ DRAW_BOX_NOTES:
 
     mov bx, [bp+4]
     mov  [start_x], bx
-
     mov bx, [bp+6]
     mov [start_y],bx
-   
-   
 
-    mov bx,10
+    mov cx,9 ;ROW COUNT
 
-    mov cx,3 ;ROW COUNT
+        mov dx,9 ;COLUMN COUNT
+        mov bx,45 ;DIFFERENCE BETWEEN TWO BOXES
 
-        PrintRow:
+        lab:
             push word  [start_y]
             push word  [start_x]
-            push one_bitmap
-            call DRAW_BITMAP
             
+            call DRAW_BOX_NOTES
             add [start_x],bx
-            ;;;;;;;;;;;;;;;;;;;;;;;;;;
-            push word  [start_y]
-            push word  [start_x]
-            push nine_bitmap
-            call DRAW_BITMAP
-            
-            add [start_x],bx
-            ;;;;;;;;;;;;;;;;;;;;;;;;;;
-            push word  [start_y]
-            push word  [start_x]
+            dec dx
+            jnz lab
 
-            push three_bitmap
-            call DRAW_BITMAP
-            
-            ;;;;;;;;;;;;;;;;;;;;;;;
-            mov bx,[bp+4]   ;reser x
-            mov [start_x], bx
+            mov dx,9 ; RESET COLUMN COUNT
 
-            add [start_y],bx
+            push bx
+            mov bx,[bp+4] ; RESET X
+            mov [start_x], bx ;RESET X IN START_X
+            pop bx
 
+            add [start_y],bx ;INCREMENT Y
 
-            loop PrintRow
+            loop lab
+    
+    popA
+    mov sp,bp
+    pop bp
+
+RET 4
 
 
-pop word [start_y]
-pop word [start_x]
-
-popA
-mov sp,bp
-pop bp
-
-RET
-
-
-
-
-clear_screen:
-    mov ah, 0x06       ; Scroll up function
-    mov al, 0          ; Number of lines to scroll (0 = clear entire screen)
-    mov bh, 0x07       ; Video page and attribute (07h = normal text)
-    mov cx, 0x0000     ; Upper-left corner of the screen (row 0, col 0)
-    mov dx, 0x184F     ; Lower-right corner (row 24, col 79)
-    int 0x10           ; Call BIOS interrupt 10h to clear the screen
-    ret                ; Return from subroutine
 
 
 
@@ -127,14 +162,9 @@ start:
     mov ax, 0x12
     int 10h
    
-   
     push word 10 ;y
     push word 10 ;x
-    ;push nine_bitmap
-
-    ;call DRAW_BITMAP
-
-    call DRAW_BOX_NOTES
+    call DRAW__ALL_BOX_NOTES
 
 
 mov ax, 0x4c00
