@@ -1,36 +1,20 @@
 [org 0x0100]
 
-jmp start
-
-
-
 %include "bitMaps.asm"
 
-
-
-clear_screen:
-    mov ah, 0x06       ; Scroll up function
-    mov al, 0          ; Number of lines to scroll (0 = clear entire screen)
-    mov bh, 0x07       ; Video page and attribute (07h = normal text)
-    mov cx, 0x0000     ; Upper-left corner of the screen (row 0, col 0)
-    mov dx, 0x184F     ; Lower-right corner (row 24, col 79)
-    int 0x10           ; Call BIOS interrupt 10h to clear the screen
-RET                    ; Return from subroutine
-
-
-DRAW_BITMAP: ;receives nine_bitmap
+DRAW_BITMAP:                                                ;DRAWS A SINGLE BITMAP
     push bp
     mov bp,sp
     pushA
-    ;mov si,zero_bitmap ;the array will be in bx
-    mov si, [bp+4] ;si=nine bitmap
+    
+    mov si, [bp+4]                                          ;SI = BITMAP TO BE DRAWN
 
     mov ah, 0x0c
     mov bh, 0
-    mov cx, [bp+6] ;x
-    mov dx, [bp+8] ;y
+    mov cx, [bp+6]                                          ;X COORDINATE
+    mov dx, [bp+8]                                          ;Y COORDINATE
     dec dx
-    mov al, 12
+    mov al, 12                                              ;RED COLOR
 
     nextRow:
         inc dx
@@ -55,8 +39,7 @@ DRAW_BITMAP: ;receives nine_bitmap
         mov sp,bp
         pop bp
 
-ret 6
-
+RET 6
 
 
 DRAW_BOX_NOTES:
@@ -73,31 +56,45 @@ DRAW_BOX_NOTES:
     mov bx, [bp+6]
     mov [start_y],bx
    
-    mov bx,10 ;DIFFERENCE BETWEEN X COORDINATES FROM LEFT OF ONE NUMBER TO LEFT OF THE NUMBER NEXT TO IT, SAME FOR Y
+    xor si,si                                               ;OFFSET FOR NOTES1
+    xor di,di                                               ;TO STORE THE NUMBER AT CURRENT INDEX
 
-        mov cx,3 ;ROW COUNT
+    mov bx,10                                               ;DIFFERENCE BETWEEN X COORDINATES FROM LEFT OF ONE NUMBER TO LEFT OF THE NUMBER NEXT TO IT, SAME FOR Y
 
-            mov dx,3 ;COLUMN COUNT
+        mov cx,3                                            ;ROW COUNT
+
+            mov dx,3                                        ;COLUMN COUNT
         PrintRow:
             push word  [start_y]
             push word  [start_x]
-            push one_bitmap
+
+            mov si, [currentNoteIndexPrint]
+            mov di,[notes1+si]                              ;GET THE NUMBER AT CURRENT INDEX
+
+            shl di,1                                        ;MULTIPLY BY 2 TO GET THE OFFSET
+            mov si, [bitMaps_Small+di]                      ;GET THE BITMAP OF THE NUMBER
+
+            push si 
+
+            inc word [currentNoteIndexPrint]                ;INCREMENT INDEX
+            inc word [currentNoteIndexPrint]                ;INCREMENT INDEX, TWICE BECAUSE EACH NUMBER IS 2 BYTES
+
             call DRAW_BITMAP
             add [start_x],bx
 
             dec dx
             jnz PrintRow
-            mov dx,3 ; RESET COLUMN COUNT
+            mov dx,3                                        ;RESET COLUMN COUNT
 
             push bx
-            mov bx,[bp+4]   ;RESET X
-            mov [start_x], bx ;RESET X IN START_X
+            mov bx,[bp+4]                                   ;RESET X
+            mov [start_x], bx                               ;RESET X IN START_X
             pop bx
 
-            add [start_y],bx ;INCREMENT Y 
-
+            add [start_y],bx                                ;INCREMENT Y 
 
             loop PrintRow
+
     pop word [start_x]
     pop word [start_y]
 
@@ -108,11 +105,14 @@ DRAW_BOX_NOTES:
 RET 4
 
 
-
 DRAW__ALL_BOX_NOTES:
 
     push bp
     mov bp,sp
+
+    xor si,si                                               ;OFFSET FOR NOTES1
+    xor di,di                                               ;TO STORE THE NUMBER AT CURRENT INDEX
+
     pushA
 
     mov bx, [bp+4]
@@ -120,10 +120,10 @@ DRAW__ALL_BOX_NOTES:
     mov bx, [bp+6]
     mov [start_y],bx
 
-    mov cx,9 ;ROW COUNT
+    mov cx,9                                                ;ROW COUNT OF EACH BOX
 
-        mov dx,9 ;COLUMN COUNT
-        mov bx,45 ;DIFFERENCE BETWEEN TWO BOXES
+        mov dx,9                                            ;COLUMN COUNT
+        mov bx,45                                           ;DIFFERENCE BETWEEN TWO BOXES
 
         lab:
             push word  [start_y]
@@ -134,14 +134,14 @@ DRAW__ALL_BOX_NOTES:
             dec dx
             jnz lab
 
-            mov dx,9 ; RESET COLUMN COUNT
+            mov dx,9                                        ;RESET COLUMN COUNT
 
             push bx
-            mov bx,[bp+4] ; RESET X
-            mov [start_x], bx ;RESET X IN START_X
+            mov bx,[bp+4]                                   ;RESET X
+            mov [start_x], bx                               ;RESET X IN START_X
             pop bx
 
-            add [start_y],bx ;INCREMENT Y
+            add [start_y],bx                                ;INCREMENT Y
 
             loop lab
     
@@ -149,23 +149,6 @@ DRAW__ALL_BOX_NOTES:
     mov sp,bp
     pop bp
 
+    mov word [currentNoteIndexPrint],0                      ;RESET INDEX
+
 RET 4
-
-
-
-
-
-
-start:
-    call clear_screen
-    
-    mov ax, 0x12
-    int 10h
-   
-    push word 10 ;y
-    push word 10 ;x
-    call DRAW__ALL_BOX_NOTES
-
-
-mov ax, 0x4c00
-int 21h
