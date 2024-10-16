@@ -6,35 +6,32 @@ jmp START
 %include "drawNotes.asm"
 
 clear_screen:
-    mov ah, 0x06       ; Scroll up function
-    mov al, 0          ; Number of lines to scroll (0 = clear entire screen)
-    mov bh, 0x07       ; Video page and attribute (07h = normal text)
-    mov cx, 0x0000     ; Upper-left corner of the screen (row 0, col 0)
-    mov dx, 0x184F     ; Lower-right corner (row 24, col 79)
-    int 0x10           ; Call BIOS interrupt 10h to clear the screen
-RET                    ; Return from subroutine
-
-
-
+    mov ah, 0x06                                    ; Scroll up function
+    mov al, 0                                       ; Number of lines to scroll (0 = clear entire screen)
+    mov bh, 0x07                                    ; Video page and attribute (07h = normal text)
+    mov cx, 0x0000                                  ; Upper-left corner of the screen (row 0, col 0)
+    mov dx, 0x184F                                  ; Lower-right corner (row 24, col 79)
+    int 0x10                                        ; Call BIOS interrupt 10h to clear the screen
+RET                                                 ; Return from subroutine
 
 
 DRAW_VERTICAL_LINE:
     mov ah, 0x0c
     push bp
     mov bp, sp
-    sub sp, 2 ;space for counter
+    sub sp, 2                                       ;SPACE FOR COUNTER
     pushA
-    mov si, [bp + 4] ; counter
+    mov si, [bp + 4]                                ;COUNTER
     mov di, 0
-    mov cx, [bp + 8] ;x
-    mov dx, [bp + 6] ;y
+    mov cx, [bp + 8]                                ;X
+    mov dx, [bp + 6]                                ;Y
     mov bh, 0
     mov al, 12
 
     loopDrawVerticalLine:
         int 10h
-        inc dx ;increment y axis
-        dec si ;decrement counter
+        inc dx                                      ;INCREMENT Y AXIS
+        dec si                                      ;DECREMENT COUNTER
     jnz loopDrawVerticalLine
 
     popA
@@ -76,19 +73,19 @@ DRAW_HORIZONTAL_LINE:
     mov ah, 0x0c
     push bp
     mov bp, sp
-    sub sp, 2 ;space for counter
+    sub sp, 2                                           ;SPACE FOR COUNTER
     pushA
 
-    mov si, [bp + 4] ; counter
-    mov cx, [bp + 8] ;x
-    mov dx, [bp + 6] ;y
-    mov bh, 0 ;page number
-    mov al, 12 ;color
+    mov si, [bp + 4]                                    ;COUNTER
+    mov cx, [bp + 8]                                    ;X
+    mov dx, [bp + 6]                                    ;Y
+    mov bh, 0                                           ;PAGE NUMBER
+    mov al, 12                                          ;COLOR
 
     loopDrawHorizontalLine:
         int 10h
-        inc cx ;increment x axis
-        dec si ;decrement counter
+        inc cx                                          ;INCREMENT X AXIS
+        dec si                                          ;DECREMENT COUNTER
     jnz loopDrawHorizontalLine
     popA
     mov sp, bp
@@ -148,15 +145,27 @@ START:
     mov ax, 0x12
     int 10h
    
+    ; push word 17
+    ; push word 17
+    ; call DRAW__ALL_BOX_NOTES
+
+    push word 5
+    push word 5
     call DRAW_HORIZONTAL_GRID
 
+    push word 5
+    push word 5
     call DRAW_VERTICAL_GRID
 
-   
-    push word 17 ;y
-    push word 17 ;x
-    call DRAW__ALL_BOX_NOTES
 
+    push word 18
+    push word 18
+    call DRAW_SUDOKU_ARRAY
+
+    ; push word 17
+    ; push word 17
+    ; call DRAW__ALL_BOX_NOTES
+   
 
 
 
