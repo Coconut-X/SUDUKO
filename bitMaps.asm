@@ -26,8 +26,11 @@ eight_bitmap:   db 1,1,1,1,1,1,1,   1,0,0,0,0,0,1,  1,0,0,0,0,0,1,  1,1,1,1,1,1,
 
 nine_bitmap:    db 1,1,1,1,1,1,1,   1,0,0,0,0,0,1,  1,0,0,0,0,0,1,  1,1,1,1,1,1,1,  0,0,0,0,0,0,1,  0,0,0,0,0,0,1,  1,1,1,1,1,1,1,  2   ;
 
+bitMaps_Freq: dw zero_bitmap, one_bitmap, two_bitmap, three_bitmap, four_bitmap, five_bitmap, six_bitmap, seven_bitmap, eight_bitmap, nine_bitmap
 
 bitMaps_Small: dw null_bitmap, one_bitmap, two_bitmap, three_bitmap, four_bitmap, five_bitmap, six_bitmap, seven_bitmap, eight_bitmap, nine_bitmap
+
+
 
 ;///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
