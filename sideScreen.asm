@@ -11,7 +11,7 @@ DISPLAY_TIMER_TEXT:
     MOV BP,SP
     PUSHA
 
-    MOV CX, 6                                          ;LENGTH OF STRING
+    MOV CX, 6                                           ;LENGTH OF STRING
     MOV SI, timer
 
     loop_timer_text:
@@ -170,7 +170,6 @@ DISPLAY_SIDE_SCREEN:
     MOV BP,SP
     PUSHA
 
-
     CALL DISPLAY_TIMER_TEXT
     CALL DISPLAY_EXIT_BUTTON
     CALL DISPLAY_MISTAKES
@@ -180,5 +179,3 @@ DISPLAY_SIDE_SCREEN:
     MOV SP,BP
     POP BP
 RET
-
-
