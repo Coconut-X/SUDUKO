@@ -14,6 +14,12 @@ clear_screen:
 RET                                                 ; Return from subroutine
 
 
+
+
+
+
+
+
 clear_left_half_of_screen:
     PUSHA
     PUSH ES
@@ -44,8 +50,6 @@ clear_left_half_of_screen:
     POP ES
     POPA
     RET
-
-
 
 
 DRAW_VERTICAL_LINE:
@@ -237,6 +241,9 @@ RET
 selected_y: dW 8
 selected_x: dW 8
 
+selected_x_index: dw 0
+selected_y_index: dw 0
+
 
 
 DRAW_RED_HOR_LINE:
@@ -250,7 +257,7 @@ DRAW_RED_HOR_LINE:
     mov cx, [bp + 8]                                    ;X
     mov dx, [bp + 6]                                    ;Y
     mov bh, 0                                           ;PAGE NUMBER
-    mov al, 0x4                                          ;COLOR
+    mov al, 0x15                                          ;COLOR
 
     loopDrawHorRedLine:
         int 10h
@@ -275,7 +282,7 @@ DRAW_RED_VER_LINE:
     mov cx, [bp + 8]                                ;X
     mov dx, [bp + 6]                                ;Y
     mov bh, 0
-    mov al, 0x4
+    mov al, 0x15
 
     loopDrawVerRedLine:
         int 10h
@@ -287,7 +294,6 @@ DRAW_RED_VER_LINE:
     mov sp, bp
     pop bp
 RET 6
-
 
 
 DRAW_SELECTED_BOX_OUTLINE:
@@ -309,10 +315,10 @@ DRAW_SELECTED_BOX_OUTLINE:
     call DRAW_RED_HOR_LINE
 
     ADD WORD [selected_y],1
-    PUSH WORD [selected_x]
-    PUSH WORD [selected_y]
-    PUSH WORD 45
-    CALL DRAW_RED_HOR_LINE
+    ; PUSH WORD [selected_x]
+    ; PUSH WORD [selected_y]
+    ; PUSH WORD 45
+    ; CALL DRAW_RED_HOR_LINE
 
     SUB WORD [selected_y],1
 
@@ -326,10 +332,10 @@ DRAW_SELECTED_BOX_OUTLINE:
     call DRAW_RED_HOR_LINE
 
     SUB WORD [selected_y],1
-    PUSH WORD [selected_x]
-    PUSH WORD [selected_y]
-    PUSH WORD 45
-    CALL DRAW_RED_HOR_LINE
+    ; PUSH WORD [selected_x]
+    ; PUSH WORD [selected_y]
+    ; PUSH WORD 45
+    ; CALL DRAW_RED_HOR_LINE
 
     ADD WORD [selected_y],1
 
@@ -342,10 +348,10 @@ DRAW_SELECTED_BOX_OUTLINE:
     call DRAW_RED_VER_LINE
 
     ADD WORD [selected_x],1
-    push word [selected_x]
-    push word [selected_y]
-    push word 45
-    call DRAW_RED_VER_LINE
+    ; push word [selected_x]
+    ; push word [selected_y]
+    ; push word 45
+    ; call DRAW_RED_VER_LINE
 
     SUB WORD [selected_x],1
 
@@ -357,10 +363,10 @@ DRAW_SELECTED_BOX_OUTLINE:
     call DRAW_RED_VER_LINE
 
     SUB WORD [selected_x],1
-    PUSH WORD [selected_x]
-    PUSH WORD [selected_y]
-    PUSH WORD 45
-    CALL DRAW_RED_VER_LINE
+    ; PUSH WORD [selected_x]
+    ; PUSH WORD [selected_y]
+    ; PUSH WORD 45
+    ; CALL DRAW_RED_VER_LINE
 
     ADD WORD [selected_x],1
     SUB WORD [selected_x],BX
@@ -375,56 +381,290 @@ RET
 
 
 EDGE_DISP:
-    CALL DISPLAY_ALL
+    ;CALL DISPLAY_ALL
+    ;CALL DRAW_SELECTED_BOX_OUTLINE
 
     JMP FIN
 
 old_kbisr: dW 0,0
 
 UP:
-    PUSH WORD [selected_y]
-    PUSH WORD [selected_x]
-    CALL DRAW_PEACH_BOX
+    ; PUSH WORD [selected_y]
+    ; PUSH WORD [selected_x]
+    ; CALL DRAW_PEACH_BOX
 
     CMP WORD [selected_y], 8
     JLE EDGE_DISP
+    ;JLE FIN
     SUB WORD [selected_y], BX 
+    SUB WORD [selected_y_index], 1 ;DECREMENTING THE INDEX
     CALL DISPLAY_ALL
     JMP FIN
 
 DOWN:
-    PUSH WORD [selected_y]
-    PUSH WORD [selected_x]
-    CALL DRAW_PEACH_BOX
+
+    ;get the number at the current selected box, if it is not 0 then jump to label "aa1"
+
+    ;using selected_x_index and selected_y_index, get the number from the array
+    ;if the number is not 0, then jump to label "aa1"
+    pushA
+    ; mov ax, [selected_y_index]
+    ; mov bx, 9
+    ; mul bx
+
+    ; add ax, [selected_x_index]
+    ; shl ax, 1
+
+    ; mov di, ax
+    ; mov ax, [solutionArray+di]
+    ; cmp ax, 0
+    ; jne aa1
+
+
+    ; PUSH WORD [selected_y]
+    ; PUSH WORD [selected_x]
+    ; CALL DRAW_PEACH_BOX
+
+    aa1:
+        popA
 
     CMP WORD [selected_y], 405+8-45 ;SUBTRACTING THE BOX SIZE
+    ;JLE FIN
+    
     JGE EDGE_DISP
     ADD WORD [selected_y], BX 
+    ADD WORD [selected_y_index], 1 ;INCREMENTING THE INDEX
     CALL DISPLAY_ALL
     JMP FIN
 
 
 RIGHT:
-    PUSH WORD [selected_y]
-    PUSH WORD [selected_x]
-    CALL DRAW_PEACH_BOX
+    ; PUSH WORD [selected_y]
+    ; PUSH WORD [selected_x]
+    ; CALL DRAW_PEACH_BOX
 
     CMP WORD [selected_x], 405+8-45
+    ;JLE FIN
+    
     JGE EDGE_DISP
     ADD WORD [selected_x], BX
+    ADD WORD [selected_x_index], 1 ;INCREMENTING THE INDEX
     CALL DISPLAY_ALL
     JMP FIN
 
 LEFT:
-    PUSH WORD [selected_y]
-    PUSH WORD [selected_x]
-    CALL DRAW_PEACH_BOX
+    ; PUSH WORD [selected_y]
+    ; PUSH WORD [selected_x]
+    ; CALL DRAW_PEACH_BOX
 
     CMP WORD [selected_x], 8
+    ;JLE FIN
+    
     JLE EDGE_DISP
     SUB WORD [selected_x], BX
+    SUB WORD [selected_x_index], 1 ;DECREMENTING THE INDEX
     CALL DISPLAY_ALL
     JMP FIN
+
+numPressed: dw 0
+
+X_INDEX: dw 0
+Y_INDEX: dw 0
+
+
+D: dW 0
+E: DW 0
+
+CALCULATE_BYTE:
+    PUSH BP
+    MOV BP,SP
+    PUSHA
+   
+
+    MOV AX,[selected_y_index]
+    MOV BX,9
+    MUL BX
+
+    ADD AX,[selected_x_index]
+    SHL AX,1
+
+    MOV DI,AX
+
+    ;IF NUMBER IS NOT ZEROO JUMP TO SKIP
+    MOV AX,[sudokuArray+DI]
+    CMP AX,0
+    JNE correct
+
+
+    MOV AX,[numPressed]
+    CMP [solutionArray+DI],AX
+
+    JNE skip_insert_and_play_invalid_sound
+
+    PUSH AX             ; UPDATE FREQUENCY
+    CALL update_Frequency
+
+    CALL correctSound
+
+    PUSH word [numPressed]
+    PUSH word [selected_x_index]
+    PUSH word [selected_y_index]
+    CALL SET_VALUE
+
+    PUSH WORD [selected_y]
+    PUSH WORD [selected_x]
+    CALL DRAW_PINK
+
+    CALL DRAW_GRID
+
+    PUSH WORD 18
+    PUSH WORD 18
+    CALL DRAW_SUDOKU_ARRAY
+    ;CALL DISPLAY_ALL
+    CALL DRAW_FREQUENCY
+    DEC BYTE [countLeft]
+
+    CMP BYTE [countLeft], 0
+    JE GAME_WON
+
+    CALL DISPLAY_SIDE_SCREEN
+    jmp correct
+
+    skip_insert_and_play_invalid_sound:
+    CALL incorrectSound
+    INC BYTE [mistakeCount]
+    CALL DISPLAY_SIDE_SCREEN
+    CMP BYTE [mistakeCount], 4
+    JE GAME_LOST
+
+
+    correct:
+    
+    ;CALL correctSound
+
+    POPA
+    MOV SP, BP
+    POP BP
+RET 
+
+game_over: db 'GAME OVER',0
+game_won: db 'GAME WON',0
+game_lost: db 'GAME LOST',0
+
+GAME_WON:
+
+    CALL clear_screen
+
+    PUSH WORD 9
+    PUSH WORD 35
+    PUSH WORD 10
+    PUSH WORD game_over
+    CALL PRINT_STRING
+
+    PUSH WORD 8
+    PUSH WORD 35
+    PUSH WORD 12
+    PUSH WORD game_won
+    CALL PRINT_STRING  
+
+RET
+
+GAME_LOST:
+
+    CALL clear_screen
+
+    PUSH WORD 9
+    PUSH WORD 35
+    PUSH WORD 10
+    PUSH WORD game_over
+    CALL PRINT_STRING
+
+    PUSH WORD 9
+    PUSH WORD 35
+    PUSH WORD 12
+    PUSH WORD game_lost
+    CALL PRINT_STRING
+
+RET
+
+
+h_pressed:
+    call buttonPressedSound
+    CALL HINT
+    JMP FIN
+
+p_pressed:
+    call buttonPressedSound
+    CALL PENCIL
+    JMP FIN
+
+e_pressed:
+    call buttonPressedSound
+    CALL ERASER
+    JMP FIN
+
+enter_Pressed:
+    CALL ENTERR
+    CMP BYTE [countLeft], 0
+    JE GAME_WON
+    JMP FIN
+
+ENTERR:
+    PUSHA
+    CMP BYTE [hintCount], 0
+    JE exit_Hint
+
+    CMP BYTE [isHint], 1
+    JNE exit_Hint
+
+    ;ELSE DISPLAY THE NUMBER AT THE CURRENT SELECTED BOX
+
+    MOV AX, [selected_y_index]
+    MOV BX, 9
+    MUL BX
+    ADD AX, [selected_x_index]
+    SHL AX, 1
+    MOV SI, AX
+    MOV AX, [solutionArray+SI]
+    MOV [sudokuArray+SI], AX
+
+    PUSH AX 
+    CALL update_Frequency
+
+    DEC BYTE [countLeft]
+
+    DEC BYTE [hintCount]
+    CALL DISPLAY_SIDE_SCREEN
+    CALL correctSound
+
+   
+
+    ;DRAW PINK BOX AT THE CURRENT SELECTED BOX
+    PUSH WORD [selected_y]
+    PUSH WORD [selected_x]
+    CALL DRAW_PINK
+
+    PUSH WORD 18
+    PUSH WORD 18
+    CALL DRAW_SUDOKU_ARRAY
+
+    CALL DRAW_FREQUENCY
+    
+
+    ;DRAW GRID
+
+    CALL DRAW_GRID
+
+    CALL DRAW_SELECTED_BOX_OUTLINE
+
+
+
+exit_Hint:
+    ;jmp h_pressed
+    POPA
+
+RET
+
 
 KEYBOARD_MOVEMENT:
     PUSHA
@@ -433,9 +673,24 @@ KEYBOARD_MOVEMENT:
     PUSH CS
     POP DS
 
-    ;CALL DISPLAY_ALL
-
     IN AL, 60H
+
+    CMP AL, 35
+    JZ h_pressed
+
+    ;CMP WITH p
+    CMP AL, 25
+    JZ p_pressed
+
+    ;CMP WITH e
+    CMP AL, 18
+    JZ e_pressed
+
+    ;CMO WITH ENTER
+    CMP AL, 28
+    JZ enter_Pressed
+
+
 
     CMP AL, 0X48
 	JZ UP
@@ -446,41 +701,33 @@ KEYBOARD_MOVEMENT:
 	CMP AL,0X4D
 	JZ RIGHT
 
+    CMP AL, 0
+    JL FIN
+
+    CMP AL, 10
+    JG FIN
+    
+    SUB AL, 1
+    MOV [numPressed], AL
+    CALL CALCULATE_BYTE
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
     FIN:
 
-    ;CALL DRAW_SELECTED_BOX_OUTLINE
     PUSH DS
     POP DS
 
     POPA
     JMP FAR [CS:old_kbisr]
 
-    IRET
+IRET
 
 DISPLAY_ALL:
-    ;CALL clear_left_half_of_screen
-
-    ; PUSH WORD [selected_y]
-    ; PUSH WORD [selected_x]
-    ; CALL DRAW_PEACH_BOX
-
     CALL movingAcrossBoardSound
-
-    CALL DRAW_ALL_PINK_BOXES
     CALL DRAW_GRID
-    ; PUSH WORD 18
-    ; PUSH WORD 18
-    ; CALL DRAW_SUDOKU_ARRAY
-    push word 17
-    push word 17
-    call DRAW__ALL_BOX_NOTES
     CALL DRAW_AVAILABLE_NUMBERS
     CALL DRAW_SELECTED_BOX_OUTLINE
 RET
-
-
-
-randNum: dw 4
 
 FOUND_EXIT:
     MOV BYTE [FOUND], 1
@@ -496,19 +743,24 @@ SET_VALUE:
     PUSHA 
 
     MOV AX, [BP+4]                  ; GET ROW
+    CMP AX,0
+    JL notSet
     MOV BX, 9
     MUL BX                          ; ANS IN AX
     ADD AX, [BP+6]                  ; ADD COLUMN
+    CMP AX,0
+    JL notSet
     SHL AX, 1                       ; MULTIPLY BY 2
     MOV SI,AX                       ; SI = OFFSET
     MOV BX, [BP+8]                  ; GET VALUE
     MOV [sudokuArray+SI], BX       ; SET VALUE
 
+
+    notSet:
     POPA
     MOV SP, BP
     POP BP
 RET 6
-
 
 
 IS_VALID_NUMBER_FOR_CURRENT_CELL:
@@ -524,8 +776,6 @@ IS_VALID_NUMBER_FOR_CURRENT_CELL:
     MOV SI,AX                       ; SI = OFFSET
     MOV BX, [BP+8]                  ; GET VALUE (NOT INSERTED YET)
 
-
-    
 
     ;CHECK THAT ROW
     MOV CX, 9
@@ -603,6 +853,7 @@ next_index_subGrid:
 RET 6
     
 seed:   dw 0
+randNum: dw 4
 
 GenRandNum:
     ; [BP + 6] LOWER_BOUND
@@ -645,7 +896,73 @@ read_tsc:
 RET 
 
 
+GenRandNumBig:
+    ; [BP + 6] LOWER_BOUND
+    ; [BP + 4] UPPER_BOUND
+    PUSH BP
+    MOV BP, SP
 
+    PUSH AX
+    PUSH BX
+    PUSH DX
+
+    MOV BX, 81
+    SUB BX, 1
+
+    OR BX, BX
+    JNZ read_tsc_big
+    
+    INC BX
+
+read_tsc_big:
+    RDTSC
+
+    ADD AX, [seed]
+    MOV [seed], AX
+
+    XOR DX, DX
+    
+    DIV BX
+
+    ADD DX, 1
+    MOV [randNum], DX
+
+     POP DX
+    POP BX
+    POP AX
+
+    MOV SP, BP
+    POP BP
+
+RET 
+
+
+REMOVE_N_NUMBERS:
+    PUSH BP
+    MOV BP,SP
+    PUSHA
+
+    MOV CX, [BP+4]
+    
+    MOV DI, 0
+    REMOVE_NUMBERS:
+        CALL GenRandNumBig
+        MOV AX, [randNum]
+        SHL AX, 1
+
+        MOV DI, AX
+        CMP WORD [sudokuArray+DI], 0
+        JE REMOVE_NUMBERS               ; IF ALREADY REMOVED, TRY AGAIN
+
+        MOV WORD [sudokuArray+DI], 0
+        INC DI
+    LOOP REMOVE_NUMBERS
+
+    POPA
+    MOV SP,BP
+    POP BP
+
+RET 2
 
 
 FILL_FIRST_ROW:
@@ -799,3 +1116,46 @@ generateBoard:
     done:
 
 ret
+
+
+
+
+DIVIDE_BY_ZERO:
+   
+    ;CALLING OSUND FUNCTION
+
+    CALL movingAcrossBoardSound
+
+
+
+    IRET
+
+
+
+;COPY sudokuArray to solutionArray
+
+COPY_TO_SOLUTION:
+    PUSH BP
+    MOV BP,SP
+    PUSHA
+
+    MOV SI,0
+    MOV DI,0
+    MOV CX,81
+    COPY_LOOP:
+        MOV AX, [sudokuArray+SI]
+        MOV [solutionArray+DI], AX
+        ADD SI, 2
+        ADD DI, 2
+    LOOP COPY_LOOP
+
+    POPA
+    MOV SP,BP
+    POP BP
+RET
+
+GAME_OVER:
+    ;CALL gameOverSound
+
+ 
+RET

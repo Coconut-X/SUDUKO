@@ -1,138 +1,41 @@
 
 exit: db "EXIT"
-mistakes: db "MISTAKES: 1/3"
+mistakes: db "MISTAKES: ",0
 undo: db "UNDO"
 timer: db "TIMER:"
+score:db "SCORE"
 temp: db 0
-level: db "DIFFICULTY: EASY"
+level: db "DIFFICULTY: "
+easy: db "EASY",0
+medium: db "MEDIUM",0
+hard: db "HARD",0
+
+diff: db 2 ; 1 for easy, 2 for medium, 3 for hard
+
+scoreCount: db 0
+mistakeCount: db 0
+
+isHint: db 0
+hintCount: DB 3
+isPencil: db 0
+isEraser: db 0
+
+pencilColor: dW 0x2
+eraserColor: dW 0x2
+hintColor: dW 0x2
 
 color: db 8
-
-;UNDO_ICON: DB 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,	0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,	0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	2	
-
-UNDO_ICON: DB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,	1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,	1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,	1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,	1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,	1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,	1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,	1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,	1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,	1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,	1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,	1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,	1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,	2
-
-; DRAW_ICONS:
-
-;     push bp
-;     mov bp,sp
-;     pushA
-    
-;     mov si, [bp+4]                                          ;SI = BITMAP TO BE DRAWN
-
-;     mov ah, 0x0c ;0x0c                                      ;TELETYPE FUNCTION
-;     mov bh, 0
-;     mov cx, [bp+6]                                          ;X COORDINATE
-;     mov dx, [bp+8]                                          ;Y COORDINATE
-;     dec dx                                                  ;Y COORDINATE - 1, BECAUSE WE WILL INC DX IN NEXT ROW
-;     mov al, 0x2                                              ;pink COLOR
-;     Next_Row:
-;         inc dx
-;         mov di, 1
-;         mov cx, [bp + 6]
-;         Current_Row:
-;             cmp byte[si], 2
-;             jz exitDraw_Bitmap
-;             cmp byte[si], 1
-;             jnz skip_Print
-;             mov al, 0x2 
-;             int 10h
-;             skip_Print:
-;                 inc cx
-;                 inc di
-;                 inc si
-;                 ; mov al,0x0
-;                 ; int 10h
-;                 cmp di, 26
-;             jz Next_Row
-;         jmp Current_Row
-
-;     exitDraw_Bitmap:
-;         popA
-;         mov sp,bp
-;         pop bp
-
-; RET 6
-
-
-
-DRAW_ICONS:
-
-    push bp
-    mov bp,sp
-    pushA
-    
-    mov si, [bp+4]                                          ;SI = BITMAP TO BE DRAWN
-
-    mov ah, 0x0c ;0x0c                                      ;TELETYPE FUNCTION
-    mov bh, 0
-    mov cx, [bp+6]                                          ;X COORDINATE
-    mov dx, [bp+8]                                          ;Y COORDINATE
-    dec dx                                                  ;Y COORDINATE - 1, BECAUSE WE WILL INC DX IN NEXT ROW
-    mov al, 0x2                                              ;pink COLOR
-    Next__Row:
-        inc dx
-        mov di, 1
-        mov cx, [bp + 6]
-        Current__Row:
-            cmp byte[si], 2
-            jz exitDraw__Bitmap
-            cmp byte[si], 1
-            jnz skip__Print
-            mov al, 0x2 
-            int 10h
-            skip__Print:
-                inc cx
-                inc di
-                inc si
-                ; mov al,0x0
-                ; int 10h
-                cmp di, 26
-            jz Next__Row
-        jmp Current__Row
-
-    exitDraw__Bitmap:
-        popA
-        mov sp,bp
-        pop bp
-
-RET 6
-
-
-
 
 DISPLAY_TIMER_TEXT:
     PUSH BP
     MOV BP,SP
     PUSHA
 
-    MOV CX, 6                                           ;LENGTH OF STRING
-    MOV SI, timer
-
-    loop_timer_text:
-        PUSH CX 
-
-        MOV AH, 02h                                     ;SET CURSOR POSITION
-        MOV BH, 0
-        MOV DH, 1                                       ;ROW
-        MOV DL, 55                                      ;COLUMN
-        ADD DL,[temp]
-        INT 10h
-
-        MOV AH, 09h                                     ;DRAW AT CURSOR POSITION
-        mov AL, [SI]                                    ;LOAD CHARACTER TO DISPLAY
-        MOV BH, 0
-        MOV BL, [color]                                      ;COLOR
-        MOV CX, 1
-        INT 10h
-
-        INC SI
-        INC byte [temp]
-
-        POP CX
-        LOOP loop_timer_text
-
-    MOV byte [temp], 0
+    PUSH WORD 5
+    PUSH WORD 55
+    PUSH WORD 1
+    PUSH timer
+    CALL PRINT_STRING
 
     POPA
     MOV SP,BP
@@ -140,23 +43,28 @@ DISPLAY_TIMER_TEXT:
 RET
 
 
+PRINT_STRING:
+    ;BP+10 = LENGTH OF STRING
+    ;BP+8 = COLUMN
+    ;BP+6 = ROW
+    ;BP+4 = STRING
 
-
-DISPLAY_UNDO_BUTTON:
     PUSH BP
     MOV BP,SP
     PUSHA
 
-    MOV CX, 4                                           ;LENGTH OF STRING
-    MOV SI, undo
+    MOV CX, [BP+10]   ;LENGTH
+    MOV SI, [BP+4]    ;STRING
 
-    loop_undo_button:
+
+    loopPrint__String:
         PUSH CX 
-
-        MOV AH, 02h                                     ;SET CURSOR POSITION
-        MOV BH, 0
-        MOV DH, 10                                      ;ROW
-        MOV DL, 55                                      ;COLUMN
+    
+        ;SET CURSOR
+        MOV AH,02h
+        MOV BH,0
+        MOV DH,[BP+6] ;ROW
+        MOV DL,[BP+8] ;COLUMN
         ADD DL,[temp]
         INT 10h
 
@@ -171,14 +79,15 @@ DISPLAY_UNDO_BUTTON:
         INC byte [temp]
 
         POP CX
-        LOOP loop_undo_button
+        LOOP loopPrint__String
+    
 
-    MOV byte [temp], 0
-
-    POPA
-    MOV SP,BP
-    POP BP
-RET
+    exitPrint__String:
+        MOV byte [temp], 0
+        POPA
+        MOV SP,BP
+        POP BP
+RET 8
 
 
 
@@ -187,33 +96,35 @@ DISPLAY_MISTAKES:
     MOV BP,SP
     PUSHA
 
-    MOV CX, 13                                           ;LENGTH OF STRING
-    MOV SI, mistakes
+    PUSH WORD 10
+    PUSH WORD 55
+    PUSH WORD 3
+    PUSH WORD mistakes
+    CALL PRINT_STRING
 
-    loop_mistakes:
-        PUSH CX 
+    MOV AH,02h
+    MOV BH,0
+    MOV DH,03
+    MOV DL,67
+    INT 10h
 
-        MOV AH, 02h                                     ;SET CURSOR POSITION
-        MOV BH, 0
-        MOV DH, 5                                       ;ROW
-        MOV DL, 55                                      ;COLUMN
-        ADD DL,[temp]
-        INT 10h
+    MOV AH, 09h                                     ;DRAW AT CURSOR POSITION
+    mov AL, [mistakeCount]                                    ;LOAD CHARACTER TO DISPLAY
+    ADD AL, 48
+    MOV BH, 0
+    MOV BL, [color]
+    MOV CX, 1
+    INT 10h
 
-        MOV AH, 09h                                     ;DRAW AT CURSOR POSITION
-        mov AL, [SI]                                    ;LOAD CHARACTER TO DISPLAY
-        MOV BH, 0
-        MOV BL, [color]
-        MOV CX, 1
-        INT 10h
 
-        INC SI
-        INC byte [temp]
+    ;DISPLAY "/3"
 
-        POP CX
-        LOOP loop_mistakes
-
-    MOV byte [temp], 0
+    ; MOV AH, 09h                                     ;DRAW AT CURSOR POSITION
+    ; mov AL, 47                                    ;LOAD CHARACTER TO DISPLAY
+    ; MOV BH, 0
+    ; MOV BL, [color]
+    ; MOV CX, 1
+    ; INT 10h
 
     POPA
     MOV SP,BP
@@ -221,43 +132,22 @@ DISPLAY_MISTAKES:
 RET
 
 
-DISPLAY_EXIT_BUTTON:
+DISPLAY_SCORE:
     PUSH BP
     MOV BP,SP
     PUSHA
 
-    MOV CX, 4                                           ;LENGTH OF STRING
-    MOV SI, exit
-
-    loop_exit_button:
-        PUSH CX 
-
-        MOV AH, 02h                                     ;SET CURSOR POSITION
-        MOV BH, 0
-        MOV DH, 15                                      ;ROW
-        MOV DL, 55                                      ;COLUMN
-        ADD DL,[temp]
-        INT 10h
-
-        MOV AH, 09h                                     ;DRAW AT CURSOR POSITION
-        mov AL, [SI]                                    ;LOAD CHARACTER TO DISPLAY
-        MOV BH, 0
-        MOV BL, [color]
-        MOV CX, 1
-        INT 10h
-
-        INC SI
-        INC byte [temp]
-
-        POP CX
-        LOOP loop_exit_button
-    
-    MOV byte [temp], 0
+    PUSH WORD 5
+    PUSH WORD 55
+    PUSH WORD 9
+    PUSH WORD score
+    CALL PRINT_STRING
 
     POPA
     MOV SP,BP
     POP BP
 RET
+
 
 DISPLAY_LEVEL_TEXT:
 
@@ -265,40 +155,66 @@ DISPLAY_LEVEL_TEXT:
     MOV BP,SP
     PUSHA
 
-    MOV CX, 16                                           ;LENGTH OF STRING
-    MOV SI, level
+    PUSH WORD 12
+    PUSH WORD 55
+    PUSH WORD 5
+    PUSH WORD level
+    CALL PRINT_STRING
 
-    loop_level_text:
-        PUSH CX 
 
-        MOV AH, 02h                                     ;SET CURSOR POSITION
-        MOV BH, 0
-        MOV DH, 20                                      ;ROW
-        MOV DL, 55                                      ;COLUMN
-        ADD DL,[temp]
-        INT 10h
+    CMP byte [diff], 1
+    JE easy_level
+    CMP byte [diff], 2
+    JE medium_level
+    CMP byte [diff], 3
+    JE hard_level
 
-        MOV AH, 09h                                     ;DRAW AT CURSOR POSITION
-        mov AL, [SI]                                    ;LOAD CHARACTER TO DISPLAY
-        MOV BH, 0
-        MOV BL, [color]
-        MOV CX, 1
-        INT 10h
+    easy_level:
+        PUSH WORD 4
+        PUSH WORD 67
+        PUSH WORD 5
+        PUSH WORD easy
+        CALL PRINT_STRING
 
-        INC SI
-        INC byte [temp]
+        JMP exit_level_text
 
-        POP CX
-        LOOP loop_level_text
+    medium_level:
+        PUSH WORD 6
+        PUSH WORD 67
+        PUSH WORD 5
+        PUSH WORD medium
+        CALL PRINT_STRING
 
-    MOV byte [temp], 0
+        JMP exit_level_text
+
+    hard_level:
+        PUSH WORD 4
+        PUSH WORD 67
+        PUSH WORD 5
+        PUSH WORD hard
+        CALL PRINT_STRING
+
+    exit_level_text:
 
     POPA
     MOV SP,BP
     POP BP
-ret
+RET
 
 
+pencil: db 0x03, 0xff, 0xff, 0xc0, 0x07, 0xff, 0xff, 0xe0, 0x0e, 0x00, 0x00, 0x70, 0x1c, 0x00, 0x00, 0x38, 0x38, 0x00, 0x00, 0x1c, 0x70, 0x00, 0x1c, 0x0e, 0xe0, 0x00, 0x22, 0x07, 0xc0, 0x00, 0x71, 0x03, 0xc0, 0x00, 0xc8, 0x83, 0xc0, 0x01, 0x84, 0x43, 0xc0, 0x03, 0x02, 0x23, 0xc0, 0x06, 0x01, 0x23, 0xc0, 0x0c, 0x00, 0xa3, 0xc0, 0x18, 0x00, 0xc3, 0xc0, 0x30, 0x01, 0x83, 0xc0, 0x60, 0x03, 0x03, 0xc0, 0xc0, 0x06, 0x03, 0xc1, 0x80, 0x0c, 0x03, 0xc3, 0x00, 0x18, 0x03, 0xc2, 0x08, 0x30, 0x03, 0xc2, 0x10, 0x60, 0x03, 0xc3, 0x60, 0xc0, 0x03, 0xc3, 0xe1, 0x80, 0x03, 0xc3, 0xc3, 0x00, 0x03, 0xc3, 0xe6, 0x00, 0x03, 0xe3, 0xfc, 0x00, 0x07, 0x70, 0x00, 0x00, 0x0e, 0x38, 0x00, 0x00, 0x1c, 0x1c, 0x00, 0x00, 0x38, 0x0e, 0x00, 0x00, 0x70, 0x07, 0xff, 0xff, 0xe0, 0x03, 0xff, 0xff, 0xc0
+
+eraser: db 0x03, 0xff, 0xff, 0xc0, 0x07, 0xff, 0xff, 0xe0, 0x0e, 0x00, 0x00, 0x70, 0x1c, 0x00, 0x00, 0x38, 0x38, 0x00, 0x38, 0x1c, 0x70, 0x00, 0x6c, 0x0e, 0xe0, 0x00, 0xc6, 0x07, 0xc0, 0x01, 0x83, 0x03, 0xc0, 0x03, 0x01, 0x83, 0xc0, 0x06, 0x00, 0xc3, 0xc0, 0x0c, 0x00, 0x63, 0xc0, 0x18, 0x00, 0x23, 0xc0, 0x30, 0x00, 0x63, 0xc0, 0x60, 0x00, 0xc3, 0xc0, 0xc0, 0x01, 0x83, 0xc1, 0xc0, 0x03, 0x03, 0xc3, 0x20, 0x06, 0x03, 0xc6, 0x10, 0x0c, 0x03, 0xc6, 0x08, 0x18, 0x03, 0xc3, 0x04, 0x30, 0x03, 0xc1, 0x82, 0x60, 0x03, 0xc0, 0xc1, 0xc0, 0x03, 0xc0, 0x61, 0x80, 0x03, 0xc0, 0x33, 0x00, 0x03, 0xc3, 0xff, 0xff, 0x03, 0xe0, 0x7f, 0xc0, 0x07, 0x70, 0x00, 0x00, 0x0e, 0x38, 0x00, 0x00, 0x1c, 0x1c, 0x00, 0x00, 0x38, 0x0e, 0x00, 0x00, 0x70, 0x07, 0xff, 0xff, 0xe0, 0x03, 0xff, 0xff, 0xc0 
+
+;hint: db 0x03, 0xff, 0xff, 0xc0, 0x07, 0xff, 0xff, 0xe0, 0x0e, 0x00, 0x00, 0x70, 0x1c, 0x07, 0xe0, 0x38, 0x38, 0x1f, 0xf8, 0x1c, 0x70, 0x30, 0x0c, 0x0e, 0xe0, 0x60, 0x06, 0x07, 0xc0, 0xc0, 0x03, 0x03, 0xc1, 0x80, 0x01, 0x83, 0xc3, 0x00, 0x00, 0xc3, 0xc3, 0x00, 0x00, 0xc3, 0xc3, 0x00, 0x00, 0xc3, 0xc3, 0x00, 0x00, 0xc3, 0xc3, 0x00, 0x00, 0xc3, 0xc3, 0x00, 0x00, 0xc3, 0xc1, 0x80, 0x01, 0x83, 0xc0, 0xc0, 0x03, 0x03, 0xc0, 0x60, 0x06, 0x03, 0xc0, 0x30, 0x0c, 0x03, 0xc0, 0x18, 0x18, 0x03, 0xc0, 0x08, 0x10, 0x03, 0xc0, 0x08, 0x10, 0x03, 0xc0, 0x07, 0xe0, 0x03, 0xc0, 0x08, 0x10, 0x03, 0xc0, 0x07, 0xe0, 0x03, 0xe0, 0x08, 0x10, 0x07, 0x70, 0x07, 0xe0, 0x0e, 0x38, 0x08, 0x10, 0x1c, 0x1c, 0x07, 0xe0, 0x38, 0x0e, 0x00, 0x00, 0x70, 0x07, 0xff, 0xff, 0xe0, 0x03, 0xff, 0xff, 0xc0
+
+;hint: db 0x03, 0xff, 0xff, 0xc0, 0x07, 0xff, 0xff, 0xe0, 0x0e, 0x00, 0x00, 0x70, 0x1c, 0x07, 0xe0, 0x38, 0x38, 0x1f, 0xf8, 0x1c, 0x70, 0x30, 0x0c, 0x0e, 0xe0, 0x63, 0x06, 0x07, 0xc0, 0xc2, 0x03, 0x03, 0xc1, 0x82, 0xc1, 0x83, 0xc3, 0x03, 0x40, 0xc3, 0xc3, 0x03, 0x40, 0xc3, 0xc3, 0x06, 0xc0, 0xc3, 0xc3, 0x04, 0x00, 0xc3, 0xc3, 0x04, 0x60, 0xc3, 0xc3, 0x06, 0xe0, 0xc3, 0xc1, 0x83, 0xa1, 0x83, 0xc0, 0xc3, 0x63, 0x03, 0xc0, 0x61, 0xc6, 0x03, 0xc0, 0x31, 0x0c, 0x03, 0xc0, 0x19, 0x18, 0x03, 0xc0, 0x09, 0x10, 0x03, 0xc0, 0x08, 0x10, 0x03, 0xc0, 0x07, 0xe0, 0x03, 0xc0, 0x08, 0x10, 0x03, 0xc0, 0x07, 0xe0, 0x03, 0xe0, 0x08, 0x10, 0x07, 0x70, 0x07, 0xe0, 0x0e, 0x38, 0x08, 0x10, 0x1c, 0x1c, 0x07, 0xe0, 0x38, 0x0e, 0x00, 0x00, 0x70, 0x07, 0xff, 0xff, 0xe0, 0x03, 0xff, 0xff, 0xc0
+
+hint: db 0x03, 0xff, 0xff, 0xc0, 0x07, 0xff, 0xff, 0xe0, 0x0e, 0x00, 0x00, 0x70, 0x1c, 0x07, 0xe0, 0x38, 0x38, 0x1f, 0xf8, 0x1c, 0x70, 0x30, 0x0c, 0x0e, 0xe0, 0x61, 0x86, 0x07, 0xc0, 0xc6, 0x03, 0x03, 0xc1, 0x8c, 0x01, 0x83, 0xc3, 0x09, 0x80, 0xc3, 0xc3, 0x0a, 0x80, 0xc3, 0xc3, 0x06, 0x80, 0xc3, 0xc3, 0x03, 0x00, 0xc3, 0xc3, 0x02, 0x40, 0xc3, 0xc3, 0x06, 0xe0, 0xc3, 0xc1, 0x82, 0xa1, 0x83, 0xc0, 0xc3, 0x63, 0x03, 0xc0, 0x61, 0xc6, 0x03, 0xc0, 0x31, 0x0c, 0x03, 0xc0, 0x19, 0x18, 0x03, 0xc0, 0x09, 0x10, 0x03, 0xc0, 0x08, 0x10, 0x03, 0xc0, 0x07, 0xe0, 0x03, 0xc0, 0x08, 0x10, 0x03, 0xc0, 0x07, 0xe0, 0x03, 0xe0, 0x08, 0x10, 0x07, 0x70, 0x07, 0xe0, 0x0e, 0x38, 0x08, 0x10, 0x1c, 0x1c, 0x07, 0xe0, 0x38, 0x0e, 0x00, 0x00, 0x70, 0x07, 0xff, 0xff, 0xe0, 0x03, 0xff, 0xff, 0xc0
+
+countLeft: DB 1
+
+toRemove: dw 1
 
 DISPLAY_SIDE_SCREEN:
     PUSH BP
@@ -306,18 +222,223 @@ DISPLAY_SIDE_SCREEN:
     PUSHA
 
     CALL DISPLAY_TIMER_TEXT
-    CALL DISPLAY_EXIT_BUTTON
+    ;CALL DISPLAY_EXIT_BUTTON
     CALL DISPLAY_MISTAKES
     ;CALL DISPLAY_UNDO_BUTTON
     CALL DISPLAY_LEVEL_TEXT
+    ;CALL DISPLAY_SCORE
 
+
+    PUSH WORD 450
+    PUSH WORD 300
+    PUSH WORD 32
+    PUSH WORD 32
+    PUSH WORD [pencilColor]
+    PUSH pencil
+    CALL printfont
+
+    PUSH WORD 450
     PUSH WORD 350
-    PUSH WORD 470
-    PUSH UNDO_ICON
-    CALL DRAW_ICONS
+    PUSH WORD 32
+    PUSH WORD 32
+    PUSH WORD [eraserColor]
+    PUSH eraser
+    CALL printfont
 
+
+    PUSH WORD 450
+    PUSH WORD 250
+    PUSH WORD 32
+    PUSH WORD 32
+    PUSH WORD [hintColor]
+    PUSH hint
+    CALL printfont
+
+    CALL DISPLAY_HINT_COUNT
+
+    ; ADD BYTE [countLeft], 48
+
+    ; PUSH WORD 1
+    ; PUSH WORD 61
+    ; PUSH WORD 22
+    ; PUSH countLeft
+    ; CALL PRINT_STRING
+
+    ; SUB BYTE [countLeft], 48
 
     POPA
     MOV SP,BP
     POP BP
+RET
+
+DISPLAY_HINT_COUNT:
+    PUSHA
+
+    ADD BYTE [hintCount], 48
+
+    PUSH WORD 1
+    PUSH WORD 61
+    PUSH WORD 16
+    PUSH hintCount
+    CALL PRINT_STRING
+
+    SUB BYTE [hintCount], 48
+
+    POPA
+
+RET
+
+
+
+printfont:
+    ; [BP + 14] POS_X
+    ; [BP + 12] POS_Y
+    ; [BP + 10] WIDTH
+    ; [BP + 08] HEIGHT
+    ; [BP + 06] COLOR
+    ; [BP + 04] ADDRESS
+    PUSH BP
+    MOV BP, SP
+    SUB SP, 4
+    ; [BP - 02] PIXEL_COUNT
+    ; [BP - 04] CURR_FONT_BYTE
+
+    PUSHA
+
+    MOV AL, [BP + 10]
+    MUL byte [BP + 8]
+    MOV [BP - 2], AX
+
+    MOV SI, [BP + 4]
+    MOV BL, [SI]
+    MOV [BP - 4], BL
+
+    MOV DI, 0
+
+    MOV AH, 0x0C
+    MOV AL, [BP + 6]
+    MOV BX, 0
+    MOV CX, [BP + 14]
+    MOV DX, [BP + 12]
+
+drawfont:
+    SHL byte [BP - 4], 1
+    JNC skip_pixel
+
+    INT 0x10
+
+skip_pixel:
+    INC DI
+    TEST DI, 7
+    JNZ skip_load
+
+    INC SI
+    MOV BL, [SI]
+    MOV [BP - 4], BL
+
+    XOR BX, BX
+
+skip_load:
+    INC CX
+
+    CMP DI, [BP + 10]
+    JNE same_row
+
+    MOV CX, [BP + 14]
+    INC DX
+    XOR DI, DI
+
+same_row:
+    DEC word [BP - 2]
+    JNZ drawfont
+
+    POPA
+    
+    MOV SP, BP
+    POP BP
+
+    RET 12
+
+
+HINT:
+    PUSHA
+
+    ;MOV WORD [hintColor],0x15
+    ;CALL DISPLAY_SIDE_SCREEN
+
+    CMP WORD [hintCount],0
+    JZ Av
+    JMP hintWasOff
+
+    Av:
+    CMP BYTE [isHint],0
+    MOV WORD [hintColor],0x2
+    jmp hintLimitReached
+
+
+    ;HINT WAS OFF
+    hintWasOff:
+    CMP BYTE [isHint],0
+    JNZ hintWasOn
+    MOV BYTE [isHint],1
+    MOV WORD [hintColor],0x15
+    ;DEC WORD [hintCount]
+    JMP hintLimitReached
+
+
+    ;HINT WAS ON
+    hintWasOn:
+        MOV BYTE [isHint],0
+        MOV WORD [hintColor],0x2
+        
+    
+    hintLimitReached:
+    CALL DISPLAY_SIDE_SCREEN
+    POPA
+
+RET
+
+
+PENCIL:
+    PUSHA
+    CMP BYTE [isPencil],0
+    JNZ pencilWasOn
+
+    pencilWasOff:
+        MOV BYTE [isPencil],1
+        MOV WORD [pencilColor],0x15
+        ;WHEN PENCIL IS ON, ERASER SHOULD BE OFF
+        MOV BYTE [isEraser],0
+        MOV WORD [eraserColor],0x2
+        JMP pencil_end
+
+    pencilWasOn:
+        MOV BYTE [isPencil],0
+        MOV WORD [pencilColor],0x2
+    
+    pencil_end:
+    CALL DISPLAY_SIDE_SCREEN
+    POPA
+RET
+
+ERASER:
+    PUSHA
+    CMP BYTE [isEraser],0
+    JNZ eraserWasOn
+
+    eraserWasOff:
+        MOV BYTE [isEraser],1
+        MOV WORD [eraserColor],0x15
+        ;WHEN ERASER IS ON, PENCIL SHOULD BE OFF
+        MOV BYTE [isPencil],0
+        MOV WORD [pencilColor],0x2
+        JMP eraser_end
+
+    eraserWasOn:
+        MOV BYTE [isEraser],0
+        MOV WORD [eraserColor],0x2
+
+    eraser_end:
+    CALL DISPLAY_SIDE_SCREEN
+    POPA
 RET

@@ -9,17 +9,13 @@ jmp START
 ;%include "frontScreen.asm"
 ;------------------------------------------------------------------------------------------------------------------
 
-; clear_screen:
-;     mov ah, 0x06                                    ; Scroll up function
-;     mov al, 0                                       ; Number of lines to scroll (0 = clear entire screen)
-;     mov bh, 0x0                                    ; Video page and attribute (07h = normal text)
-;     ;mov bh,01111111b
-;     mov cx, 0x0000                                  ; Upper-left corner of the screen (row 0, col 0)
-;     mov dx, 0xffff                                  ; Lower-right corner (row 24, col 79)
-;     int 0x10                                        ; Call BIOS interrupt 10h to clear the screen
-; RET                                                 ; Return from subroutine
-
 START:
+
+
+ MOV AH,00
+    INT 16H
+
+   
    
     mov ax, 0x12
     int 10h
@@ -29,56 +25,60 @@ START:
 ;////////////////////////////COLOR PALETTE///////////////////////////////
     MOV AL,0x0
     MOV dx,0x3c8
-    out dx,al
-    mov dx,0x3c9
+    OUT dx,al
+    MOV dx,0x3c9
 
      ;WHITE
-    mov al,63
-    out dx,al
-    mov al,59
-    out dx,al
-    mov al,59
-    out dx,al
+    MOV al,63
+    OUT dx,al
+    MOV al,59
+    OUT dx,al
+    MOV al,59
+    OUT dx,al
 
 
     ;baby pink
-    mov al,61
-    out dx,al
-    mov al,49
-    out dx,al
-    mov al,55
-    out dx,al
+    MOV al,61
+    OUT dx,al
+    MOV al,49
+    OUT dx,al
+    MOV al,55
+    OUT dx,al
 
     ;DARK PINK
 
-    mov al,63
-    out dx,al
-    mov al,11
-    out dx,al
-    mov al,39
-    out dx,al
+    MOV al,63
+    OUT dx,al
+    MOV al,11
+    OUT dx,al
+    MOV al,39
+    OUT dx,al
 
     ;ORANGE
-    mov al,63
-    out dx,al
-    mov al,28
-    out dx,al
-    mov al,16
-    out dx,al
+    MOV al,63
+    OUT dx,al
+    MOV al,28
+    OUT dx,al
+    MOV al,16
+    OUT dx,al
 
 ;/////////////////////////////////////////////////////////////////////////////////////
    
-
-
     ; ;-------------------------------------
 
 
-    CALL DRAW_ALL_PINK_BOXES
-
-    CALL DRAW_GRID                                   ;DRAW GRID, VERTICAL AND HORIZONTAL LINES
-
     CALL generateBoard
 
+    CALL COPY_TO_SOLUTION
+
+    PUSH WORD [toRemove]
+    CALL REMOVE_N_NUMBERS
+
+    CALL DRAW_ALL_PINK_BOXES
+    
+    CALL SET_FREQUENCY
+    
+    CALL DRAW_GRID                                   ;DRAW GRID, VERTICAL AND HORIZONTAL LINES
 
     PUSH WORD 18
     PUSH WORD 18
@@ -92,7 +92,7 @@ START:
 
     CALL DISPLAY_SIDE_SCREEN
 
-    ;CALL DRAW_SELECTED_BOX_OUTLINE
+    CALL DRAW_SELECTED_BOX_OUTLINE
 
     CALL TIMER_START
 
@@ -109,12 +109,21 @@ START:
 
     MOV AX,[ES:9*4+2]
     MOV [old_kbisr+2],AX ;SAVE SEGMENT
-
+         
+    ;SET NEW INTERRUPT VECTOR
 
     CLI 
     MOV WORD [ES:9*4],KEYBOARD_MOVEMENT
     MOV WORD [ES:9*4+2],CS
     STI
+
+
+    ;hook divide by zero interrupt
+    MOV AX, 0
+    MOV ES, AX
+    MOV WORD [ES:0],  DIVIDE_BY_ZERO
+    MOV WORD [ES:2], CS
+
 
     MOV DX,START
 	add dx, 15 ; round up to next para

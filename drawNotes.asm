@@ -1,4 +1,3 @@
-[org 0x0100]
 
 %include "bitMaps.asm"
 
@@ -39,52 +38,6 @@ DRAW_BITMAP:                                                ;DRAWS A SINGLE BITM
         pop bp
 
 RET 6
-
-
-
-
-; DRAW_BITMAP:                                                ;DRAWS A SINGLE BITMAP
-;     push bp
-;     mov bp,sp
-;     pushA
-    
-;     mov si, [bp+4]                                          ;SI = BITMAP TO BE DRAWN
-;     dec si                                                  ;DECREMENT SI BECAUSE WE WILL INC SI IN NEXT ROW
-
-;     mov ah, 0x0c ;0x0c                                      ;TELETYPE FUNCTION
-;     mov bh, 0
-;     mov cx, [bp+6]                                          ;X COORDINATE
-;     mov dx, [bp+8]                                          ;Y COORDINATE
-;     dec dx                                                  ;Y COORDINATE - 1, BECAUSE WE WILL INC DX IN NEXT ROW
-;     mov al, 12                                              ;RED COLOR
-;     nextRow:
-;         inc dx                                              ;BRINGS TO FIRST ROW WHEN RUNS FIRST TIME
-;         inc si                                              ;BRINGS TO FIRST ROW WHEN RUNS FIRST TIME
-
-;         mov cx, [bp + 6]                                    ;X COORDINATE reset
-;         cmp byte[si], 1010101b                              ;EXIT IF THE END OF THE BITMAP
-;         jz exitDrawBitmap
-
-;         CurrentRow:
-;             shl byte [si], 1
-;             jnc skipPrint
-           
-            
-;             int 0x10
-
-;             skipPrint:
-                
-;                 inc cx
-;                 cmp byte [si], 0                                ;IF THE END OF THE ROW
-;                 jz nextRow
-;         jmp CurrentRow
-
-;     exitDrawBitmap:
-;         popA
-;         mov sp,bp
-;         pop bp
-
-; RET 6
 
 
 
@@ -164,6 +117,9 @@ DRAW__ALL_BOX_NOTES:
     mov [start_y],bx
     mov si,sudokuArray
 
+    push word  [start_y]
+    push word  [start_x]
+
     mov cx,9                                                ;ROW COUNT OF EACH BOX
 
         mov dx,9                                            ;COLUMN COUNT
@@ -194,6 +150,9 @@ DRAW__ALL_BOX_NOTES:
             add [start_y],bx                                ;INCREMENT Y
 
             loop lab
+    
+    pop word [start_x]
+    pop word [start_y]
 
     popA
     mov sp,bp
@@ -287,46 +246,48 @@ DRAW_PINK:
 RET 4
 
 
+pink_x: dw 9
+pink_y: dw 9
+
 
 DRAW_ALL_PINK_BOXES:
     PUSH BP
     MOV BP,SP
     PUSHA
 
-    ;drawing pink boxes in the grid where the nummber is not zero in sudoku array, each box is 45x45 and there is 45 distance between each box, but our grid starts with 9,9 offset so we will initially start from 9,9 and then add 45 to x and y to draw the next box
-    MOV BX,9
-    PUSH WORD 9 ;X
-    PUSH WORD 9 ;Y
-
     MOV SI,sudokuArray
+    MOV CX,9
 
-    MOV CX,9 ;ROW COUNT
-    MOV DX,9 ;COLUMN COUNT
-    MOV BX,45 ;DIFFERENCE BETWEEN TWO BOXES
+    nextPinkBoxRow:
+        PUSH CX
+        MOV CX,9
+        
+        currentPinkBoxRow:
+            CMP WORD [SI],11 ;11 IS END OF SUDOKU
+            JZ end_pink_boxes
+            CMP WORD [SI],0
+            JZ SKIP_
+            PUSH WORD [pink_y]
+            PUSH WORD [pink_x]
+            CALL DRAW_PINK
 
-    LAB:
-        CMP WORD [SI],0
-        JNZ SKIP_
-        PUSH WORD 9 ;X
-        PUSH WORD 9 ;Y
-        CALL DRAW_PINK
-        SKIP_:
-        ADD [start_x],BX
-        ADD SI,2
-        DEC DX
-        JNZ LAB
+            SKIP_:
+                ADD WORD [pink_x],45
+                ADD SI,2
+                LOOP currentPinkBoxRow
 
-        MOV DX,9 ;RESET COLUMN COUNT
-        PUSH BX
-        MOV BX,9 ;RESET X
-        POP BX
-        ADD [start_y],BX
-        LOOP LAB
+                POP CX
+                ADD WORD [pink_y],45
+                MOV WORD [pink_x],9
+                LOOP nextPinkBoxRow
 
+    end_pink_boxes:
+
+    MOV WORD [pink_x],9
+    MOV WORD [pink_y],9
     POPA
     MOV SP,BP
     POP BP
-
 
 RET
 
@@ -339,6 +300,7 @@ DRAW_SUDOKU_ARRAY:
 
     push word [start_sudoku_x]
     push word [start_sudoku_y]
+    PUSH WORD [currentNoteIndexPrint]
 
     mov bx, [bp+4]
     mov [start_sudoku_x],bx
@@ -351,9 +313,6 @@ DRAW_SUDOKU_ARRAY:
     mov bx, 45                                              ;DIFFERENCE BETWEEN TWO BOXES
     mov cx,9                                                ;ROW COUNT
         mov dx,9                                            ;COLUMN COUNT
-
-        ; inc word [currentSudokuIndexPrint]              ;INCREMENT INDEX
-        ; inc word [currentSudokuIndexPrint]              ;INCREMENT INDEX, TWICE BECAUSE EACH NUMBER IS 2 BYTES
 
         loop_Print_Sudoku_Row:
 
@@ -391,18 +350,54 @@ DRAW_SUDOKU_ARRAY:
 
             loop loop_Print_Sudoku_Row
 
+    POP WORD [currentSudokuIndexPrint]
     pop word [start_sudoku_x]
     pop word [start_sudoku_y]
+
+    ;MOV WORD [start_sudoku_x],18
+    ;MOV WORD [start_sudoku_y],18
+
     popA
     mov sp,bp
     pop bp
 
 RET 4
 
-DRAW_BABY_PINK_BOXES:
+DRAW_PEACH_BOX:
+    PUSH BP
+    mov bp,sp
+    PUSHA
+    MOV BH,0
+    MOV CX,[BP+4] ;X
+    MOV DX,[BP+6] ;Y
+    DEC DX
 
-
+    mov byte [COUNTER],0
+    MOV AH,0X0C
+    next_R:
+        INC DX
+        MOV DI,1
+        MOV CX,[BP+4] ; reset X
+        INC BYTE [COUNTER]
+        CMP BYTE [COUNTER],46
+        JZ end_peach_box
+        current_R:
+            
+            MOV AL,0X0
+            INT 10h
+            INC CX
+            INC DI
+            INC SI
+            
+            CMP DI,46
+            JZ next_R
+        JMP current_R
     
-    
+    end_peach_box:
+        popA
+        mov sp,bp
+        pop bp
 
-RET 
+        MOV BYTE [COUNTER],0 ;RESET COUNTER
+
+RET 4
