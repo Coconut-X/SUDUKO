@@ -10,13 +10,15 @@ guide: db 'G U I D E'
 ez: db 'E A S Y'
 med: db 'M E D I U M'
 hd: db 'H A R D'
+custom: db 'ENTER NUMBER OF ELEMENTS TO REMOVE'
+cust: db 'C U S T O M'
 
 G1: DB '1. COMPLETE THE GRID'
 G2: DB '2. UNIQUE ELEMENTS IN EACH ROW'
 G3: DB '3. UNIQUE ELEMENTS IN EACH COLUMN'
 G4: DB '4. UNIQUE ELEMENTS IN EACH SUBGRID'
 G5: DB '5. YOU HAVE THREE HINTS'
-G6: DB '6. YOU HAVE THREE MISTAKES'
+G6: DB '6. YOU HAVE THREE1 MISTAKES'
 G7: DB 'PRESS DOWN KEY TO GO BACK'
 
 GO: DB 0
@@ -140,14 +142,14 @@ KEY_UP:
     JMP NO_KEY
 
 KEY_DOWN:
-    CMP WORD [cs:POINTER_Y], 56+16*3
+    CMP WORD [cs:POINTER_Y], 56+16*4
     JE NO_KEY
     ADD WORD [cs:POINTER_Y], 16
     CALL PRINT_POINTER
     JMP NO_KEY
 
 DF1:
-    MOV BYTE [cs:diff], 1
+    MOV BYTE [diff], 1
     MOV WORD [toRemove],20
     MOV BYTE [countLeft],20
     MOV BYTE [CS:GO], 1
@@ -158,7 +160,7 @@ DF1:
 
 
 DF2:
-    MOV BYTE [cs:diff], 2
+    MOV BYTE [diff], 2
     MOV WORD [toRemove],35
     MOV BYTE [countLeft],35
     MOV BYTE [CS:GO], 1
@@ -168,7 +170,7 @@ DF2:
     JMP NO_KEY
 
 DF3:
-    MOV BYTE [cs:diff], 2
+    MOV BYTE [diff], 3
     MOV WORD [toRemove],55
     MOV BYTE [countLeft],55
     MOV BYTE [CS:GO], 1
@@ -178,8 +180,37 @@ DF3:
     JMP NO_KEY
 
 DF4: ;CUSTOM DIFFICULTY
-    CALL clear_320
 
+    ; CALL CLR
+    
+    ; PUSH WORD 28
+    ; PUSH WORD 10
+    ; PUSH WORD 10
+    ; PUSH custom
+    ; CALL PRINT_STR
+
+    ; MOV AH, 0X0
+    ; INT 16H
+
+    CMP AL, 0X0
+    JL NO_KEY
+
+    CMP AL, 0XA
+    JG NO_KEY
+
+
+    DEC AL
+    MOV BL,8
+    MUL BL
+    MOV AH,0
+
+    MOV BYTE [diff], 4
+    MOV WORD [toRemove], AX
+    MOV BYTE [countLeft], AL
+    MOV BYTE [CS:GO], 1
+
+
+    
     MOV WORD [BP+2],exit_menu
     MOV WORD [BP+4],CS
     JMP NO_KEY
@@ -199,6 +230,9 @@ entered:
     CMP WORD [CS:POINTER_Y], 56+48
     JE DF3
 
+    CMP WORD [CS:POINTER_Y], 56+64
+    JE DF4
+
     JMP NO_KEY
 
 MENU_KEYBOARD:
@@ -213,13 +247,16 @@ MENU_KEYBOARD:
     CMP AL, 0x50
     JE KEY_DOWN
 
+    ; CMP WORD [CS:POINTER_Y], 56+64
+    ; JE DF4
+
     CMP AL, 0x1C
     JE entered
-
-
     
-   
     call movingAcrossBoardSound
+
+    JMP DF4
+   
 
    NO_KEY:
     POP AX
@@ -234,7 +271,15 @@ IRET
 
 PRINT_POINTER:
 
-    CALL clear_320  
+    ;CALL clear_320  
+    CALL CLR
+
+    ; mov ax, 0xa000
+    ; mov es, ax
+    ; call print_welcome_screen
+
+    ;MOV WORD [POINTER_Y], 56
+
 
     PUSH WORD 100
     PUSH WORD [POINTER_Y]
@@ -277,15 +322,48 @@ PRINT_POINTER:
     PUSH hd
     CALL PRINT_STR
 
+
+    PUSH WORD 11
+    PUSH WORD 14
+    PUSH WORD 15
+    PUSH cust
+    CALL PRINT_STR
+
 RET
 
 
+CLR:
+    PUSHA
+    PUSH ES
+
+    PUSH word 0xA000
+    POP ES
+
+    MOV AL, 0x02
+    MOV DX, 0x3C4
+    OUT DX, AL
+
+    MOV AL, 0x0F
+    MOV DX, 0x3C5
+    OUT DX, AL
+
+   MOV DI, 16000
+XOr AX, AX
+MOV CX, 24000
+
+rEP STOSW
+
+    POP ES
+    POPA
+RET
+
 MENUU:
 
-
+    ;CALL clear_320
+    CALL CLR
     CALL PRINT_POINTER
 
-
+    ;CALL clear_320
 
     JK:
         CMP BYTE [cs:GO], 0
