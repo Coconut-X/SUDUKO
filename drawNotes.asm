@@ -110,6 +110,9 @@ DRAW__ALL_BOX_NOTES:
     push bp
     mov bp,sp
     pushA
+    
+    push word  [start_y]
+    push word  [start_x]
 
     mov bx, [bp+4]
     mov  [start_x], bx
@@ -117,8 +120,6 @@ DRAW__ALL_BOX_NOTES:
     mov [start_y],bx
     mov si,sudokuArray
 
-    push word  [start_y]
-    push word  [start_x]
 
     mov cx,9                                                ;ROW COUNT OF EACH BOX
 
@@ -127,15 +128,17 @@ DRAW__ALL_BOX_NOTES:
 
         lab:
 
-            
+            push word [currentNoteIndexPrint]
             cmp word [si], 0
             jnz Skip_
             push word  [start_y]
             push word  [start_x]
-
+ 
             call DRAW_BOX_NOTES
             
             Skip_:
+            pop word [currentNoteIndexPrint]
+            add word [currentNoteIndexPrint],18
             add [start_x],bx
             add si,2
             
@@ -153,6 +156,10 @@ DRAW__ALL_BOX_NOTES:
     
     pop word [start_x]
     pop word [start_y]
+
+    MOV WORD [start_x], 0
+    MOV WORD [start_y], 0
+
 
     popA
     mov sp,bp
@@ -365,10 +372,10 @@ RET 4
 
 DRAW_PEACH_BOX:
     PUSH BP
-    mov bp,sp
+    MOV BP,SP
     PUSHA
-    MOV BH,0
-    MOV CX,[BP+4] ;X
+    MOV BH,0 
+    MOV CX,[BP+4] ;X 
     MOV DX,[BP+6] ;Y
     DEC DX
 
@@ -394,6 +401,46 @@ DRAW_PEACH_BOX:
         JMP current_R
     
     end_peach_box:
+        POPA
+        MOV SP,BP
+        POP BP
+
+        MOV BYTE [COUNTER],0 ;RESET COUNTER
+
+RET 4
+
+
+DRAW_PURPLE_BOX:
+    PUSH BP
+    mov bp,sp
+    PUSHA
+    MOV BH,0
+    MOV CX,[BP+4] ;X
+    MOV DX,[BP+6] ;Y
+    DEC DX
+
+    mov byte [COUNTER],0
+    MOV AH,0X0C
+    next_Rr:
+        INC DX
+        MOV DI,1
+        MOV CX,[BP+4] ; reset X
+        INC BYTE [COUNTER]
+        CMP BYTE [COUNTER],46
+        JZ end_purple_box
+        current_Rr:
+            
+            MOV AL,0x15
+            INT 10h
+            INC CX
+            INC DI
+            INC SI
+            
+            CMP DI,46
+            JZ next_Rr
+        JMP current_Rr
+    
+    end_purple_box:
         popA
         mov sp,bp
         pop bp
@@ -401,3 +448,5 @@ DRAW_PEACH_BOX:
         MOV BYTE [COUNTER],0 ;RESET COUNTER
 
 RET 4
+    
+

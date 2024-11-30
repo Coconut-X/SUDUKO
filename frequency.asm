@@ -65,6 +65,47 @@ RET
         
 
 
+DRAW_FREQ_LARGE:
+
+    push bp
+    mov bp,sp
+    pushA
+    
+    mov si, [bp+4]                                          ;SI = BITMAP TO BE DRAWN
+
+    mov ah, 0x0c ;0x0c                                      ;TELETYPE FUNCTION
+    mov bh, 0
+    mov cx, [bp+6]                                          ;X COORDINATE
+    mov dx, [bp+8]                                          ;Y COORDINATE
+    dec dx                                                  ;Y COORDINATE - 1, BECAUSE WE WILL INC DX IN NEXT ROW
+    mov al, 0x7                                              ;pink COLOR
+    Next_Row_F:
+        inc dx
+        mov di, 1
+        mov cx, [bp + 6]
+        Current_Row_F:
+            cmp byte[si], 2
+            jz exitDraw_Bitmap_F
+            cmp byte[si], 1
+            jnz skip_Print_F
+            mov al, 0x7 
+            int 10h
+            skip_Print_F:
+                inc cx
+                inc di
+                inc si
+                ; mov al,0x0
+                ; int 10h
+                cmp di, 26
+            jz Next_Row_F
+        jmp Current_Row_F
+
+    exitDraw_Bitmap_F:
+        popA
+        mov sp,bp
+        pop bp
+
+RET 6
 
 
 DRAW_AVAILABLE_NUMBERS:
@@ -82,7 +123,7 @@ DRAW_AVAILABLE_NUMBERS:
         PUSH BX
         MOV SI,[bitmaps_large_array+DI]
         PUSH SI
-        CALL DRAW_BITMAP_LARGE
+        CALL DRAW_FREQ_LARGE 
         ADD BX,45
         ADD DI,2
         LOOP Draw_Available_Loop

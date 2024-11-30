@@ -416,13 +416,8 @@ Y_INDEX: dw 0
 D: dW 0
 E: DW 0
 
-CALCULATE_BYTE:
-    PUSH BP
-    MOV BP,SP
+SAVE_IN_STACK:
     PUSHA
-
-    CMP BYTE [isPencil], 1
-    JNE notPencil
 
     MOV AX,[selected_y_index] 
     MOV BX,9
@@ -432,7 +427,51 @@ CALCULATE_BYTE:
 
     MOV BX,18
     MUL BX
+    ;AX CONTAINS THE INDEX OF FIRST NOTE OF THE SELECTED BOX
+    MOV DI,AX
 
+    ;NOW CALCULATE THE INDEX OF ENTERED NOTE IN THE SELECTED BOX
+    MOV AX, [numPressed]
+    SHL AX, 1
+    SUB AX, 2
+    ADD DI, AX
+
+    ;DI CONTAINS THE INDEX OF THE ENTERED NOTE IN THE SELECTED BOX
+
+    MOV AX,[stackTop]
+    MOV SI,AX
+    MOV WORD [stack+SI], DI
+    MOV AX,[selected_x]
+    MOV WORD [stack+SI+2], AX
+    MOV AX,[selected_y]
+    MOV WORD [stack+SI+4], AX
+    ADD WORD [stackTop], 6
+
+    ;MOV WORD 
+
+    POPA
+RET
+
+
+
+CALCULATE_BYTE:
+    PUSH BP
+    MOV BP,SP
+    PUSHA
+
+    CMP BYTE [isPencil], 1
+    JNE notPencil
+
+    CALL SAVE_IN_STACK
+
+    MOV AX,[selected_y_index] 
+    MOV BX,9
+    MUL BX
+
+    ADD AX,[selected_x_index]
+
+    MOV BX,18
+    MUL BX
     ;AX CONTAINS THE INDEX OF FIRST NOTE OF THE SELECTED BOX
     MOV DI,AX
     ; ;PUSH DI
@@ -618,36 +657,56 @@ UNDO:
     CMP WORD [stackTop], 0
     JE exit_UNDO
 
-    ;CALL clear_screen
-    ; DEC WORD [stackTop]
-    ; MOV AX, [stack + [stackTop]]
-    ; MOV DI, AX
+    ;=================================
+    ;GET THE INDEX OF LAST ENTERED NOTE
+    MOV DX,0
+    MOV AX,[stackTop]
+    MOV DI,AX
+    MOV AX,[stack+DI-6]
 
-    ; MOV AX, [notes1+DI]
-    ; MOV [sudokuArray+DI], AX
+    ;CALCULATE CELL INDEX of 9x9 SUDOKU BOARD
+    ;AX CONTAINS THE INDEX OF LAST ENTERED NOTE, INDEX IS IN BYTES
+    MOV BX,18
+    DIV BX
+
+    MOV DI,AX
+    SHL DI,1
+
+    ;CHECK IF NUMBER IN ARRAY IS NOT ZERO
+    MOV AX,[sudokuArray+DI]
+    CMP AX,0
+    JE start_undo
+
+    SUB WORD [stackTop], 6
+    JMP exit_UNDO
+
+
+
+    start_undo:
+    ;==============================
+
+
+    ;SUB WORD [stack]
+    SUB WORD [stackTop], 2
+    MOV AX,[stackTop]
+    MOV DI,AX
+    MOV AX,[stack+DI]
+    PUSH AX ;------------
 
     SUB WORD [stackTop], 2
-    ; MOV SI, [stackTop]
-    ; MOV DI, [stack+SI]
-    ; MOV AX, [notes1+DI]
-    ; MOV word  [notes1+DI], 0
-    MOV SI, [stackTop]
-    MOV AX, [stack+SI]
-    PUSH AX
-    MOV AX, [stack+SI+2]
-    PUSH AX
+    MOV AX,[stackTop]
+    MOV DI,AX
+    MOV AX,[stack+DI]
+    PUSH AX ;------------
     CALL DRAW_PEACH_BOX
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; UUUUUUUUUUUUUUUUUUUUU
-    MOV DI, [stack+SI+4]
+
+    SUB WORD [stackTop], 2
+    MOV AX,[stackTop]
+    MOV DI,AX
+    MOV AX,[stack+DI]
+    MOV DI,AX
     MOV WORD [notes1+DI], 0
-
-    SUB WORD [stackTop], 4
-
-    
-
-    ; PUSH WORD [selected_y]
-    ; PUSH WORD [selected_x]
-    ; CALL DRAW_PEACH_BOX
+   
 
     PUSH WORD 17
     PUSH WORD 17
@@ -1270,6 +1329,17 @@ ret
 
 
 DIVIDE_BY_ZERO:
+    PUSHA
+
+    CALL incorrectSound
+    CALL incorrectSound
+    CALL incorrectSound
+    CALL incorrectSound
+
+    MOV AL, 0x20
+    OUT 0x20, AL
+
+    POPA
 
 IRET
 

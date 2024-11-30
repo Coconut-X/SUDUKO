@@ -230,8 +230,8 @@ entered:
     CMP WORD [CS:POINTER_Y], 56+48
     JE DF3
 
-    CMP WORD [CS:POINTER_Y], 56+64
-    JE DF4
+    ; CMP WORD [CS:POINTER_Y], 56+64
+    ; JE DF4
 
     JMP NO_KEY
 
@@ -254,6 +254,7 @@ MENU_KEYBOARD:
     JE entered
     
     call movingAcrossBoardSound
+    
 
     JMP DF4
    
@@ -406,8 +407,8 @@ nextdigit: mov dx, 0 ; zero upper half of dividend
  
     MOV AH,02h
     MOV BH,0
-    MOV DH,00
-    MOV DL,00
+    MOV DH,07
+    MOV DL,67
     INT 10h
 
 
@@ -422,7 +423,7 @@ nextdigit: mov dx, 0 ; zero upper half of dividend
     MOV AH, 0Eh                                     ;DRAW AT CURSOR POSITION
     ;ADD AL, 48
     MOV BH, 0
-    MOV BL, 0X1
+    MOV BL, 0X4
     INT 10h
 
 

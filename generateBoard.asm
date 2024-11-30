@@ -1,9 +1,3 @@
-[org 0x100]
-;jmp a
-JMP START
-;%include "bitMaps.asm"
-;%include "randomNumber.asm"
-
 
 SUDOKU_BOARD:
     DW 0,0,0,0,0,0,0,0,0,
@@ -17,49 +11,6 @@ SUDOKU_BOARD:
     DW 0,0,0,0,0,0,0,0,0, ; 10 is the end of the board
 
 randNum: dw 4
-
-DISPLAY_FOUND:
-    PUSH BP
-    MOV BP,SP
-    PUSHA
-
-    MOV AX, 0XB800
-    MOV ES,AX
-    MOV DI, 220
-
-    MOV AH, 0EH
-    MOV AL, 'Y'
-    MOV [ES:DI], AX
-
-    POPA
-    MOV SP,BP
-    POP BP
-
-    jmp exit
-RET
-
-DISPLAY_NOT_FOUND:
-    PUSH BP
-    MOV BP,SP
-    PUSHA
-
-    MOV AX, 0XB800
-    MOV ES,AX
-    MOV DI, 220
-
-    MOV AH, 0EH
-    MOV AL, 'N'
-    MOV [ES:DI], AX
-
-    
-
-    POPA
-    MOV SP,BP
-    POP BP
-
-    jmp exit
-RET
-
 
 FOUND_EXIT:
     MOV BYTE [FOUND], 1
@@ -134,8 +85,6 @@ IS_VALID_NUMBER_FOR_CURRENT_CELL:
         ADD DI, 18
         LOOP COLUMN_LOOP
     COLUMN_LOOP_END:
-
-    
 
     ; CHECK 3X3
 
@@ -430,8 +379,6 @@ finish:
 
 COUNT: DW 0
 
-
-
 DEBUG_DISPLAY_BOARD:
     PUSH BP
     MOV BP, SP
@@ -587,11 +534,7 @@ FILL_SINGLE_ROW: ;FILLS ONE OF THE ROW PUSHED TO IT AND INSERTS IF VALID, THIS D
     
     DEC BX
     MOV AX, [BP+4]          ; ROW
-    ; PUSH WORD 0
-    ; PUSH BX
-    ; PUSH AX
-    ; CALL SET_VALUE      ; SET PREVIOUS CELL TO ZERO
-
+   
     POPA
     MOV SP,BP
     POP BP
@@ -599,66 +542,28 @@ FILL_SINGLE_ROW: ;FILLS ONE OF THE ROW PUSHED TO IT AND INSERTS IF VALID, THIS D
 
 
 
-START:
+generateBoard:
 
-    JMP KIPA
-    JMP update_row
-  
-KIPA:
     MOV WORD [sp_val], SP ;STORE CURRENT SP TO EXIT AFTER ONE SOLUTION FOUND
     MOV WORD [bp_val], BP ;STORE CURRENT BP TO EXIT AFTER ONE SOLUTION FOUND
 
 
 
-    mov bx,SUDOKU_BOARD
-    ;CALL DISPLAY_COUNT
-    
-
-    ; MOV AX,00
-    ; INT 16H
-
     CALL FILL_FIRST_ROW
-
-    ; PUSH WORD 0 ;COL
-    ; PUSH WORD 1 ;ROW
-    ; ;CALL GENERATE_BOARD
-    ; CALL FILL_SINGLE_ROW
 
     PUSH WORD 0
     PUSH WORD 1
     CALL GENERATE_BOARD
 
-
     done:
 
-    ;MOV SP, [sp_val]
-    ; MOV SI,SUDOKU_BOARD
-    ; ADD SI, 18
-
-    ;  PUSH SI
-    ;  CALL PRINT_FIRST_ROW
-
-    CALL DISPLAY_ALL_ROWS
+ret
 
 
 
+    
 
-    ; PUSH WORD 9 ; VALUE
-    ; PUSH WORD 7 ; COLUMN
-    ; PUSH WORD 6 ; ROW
-    ; CALL IS_VALID_NUMBER_FOR_CURRENT_CELL
-    ; CMP BYTE [FOUND], 1
-    ; JE DISPLAY_FOUND
-    ; ;jne DISPLAY_NOT_FOUND
-    ; call DISPLAY_NOT_FOUND
+  
 
-    ;CALL DISPLAY_FOUND
-    ;CALL DISPLAY_NOT_FOUND
 
-    exit:
 
-        AZ:
-            ;JMP AZ
-
-    MOV AX, 0X4C00
-    INT 21H

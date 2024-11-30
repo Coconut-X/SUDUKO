@@ -1,0 +1,90 @@
+     1                                  [org 0x100]               ; Origin of the program
+     2                                  
+     3 00000000 EB02                    jmp start
+     4                                  
+     5 00000002 0000                    video_offset dw 0         ; Video memory offset for current pixel
+     6                                  
+     7                                  start:
+     8                                      ; Set video mode to 13h (320x200 256-color)
+     9 00000004 B81300                      mov ax, 0x13
+    10 00000007 CD10                        int 0x10
+    11                                  
+    12                                  firework_loop:
+    13 00000009 E80500                      call firework        ; Call the firework animation subroutine
+    14 0000000C E83E00                      call delay           ; Add delay between fireworks
+    15 0000000F EBF8                        jmp firework_loop    ; Loop back to the start for the next firework
+    16                                  
+    17                                  firework:
+    18                                      ; Draw the firework launch (vertical line moving upwards)
+    19 00000011 B99600                      mov cx, 150          ; Set the initial Y position
+    20                                  launch_loop:
+    21 00000014 E81500                      call draw_pixel      ; Draw the "rocket" at current position
+    22 00000017 E83300                      call delay           ; Small delay for animation effect
+    23 0000001A E81900                      call clear_pixel     ; Clear the previous pixel
+    24 0000001D E2F5                        loop launch_loop     ; Loop until the rocket reaches the top
+    25                                  
+    26                                      ; Now simulate an explosion at the top
+    27 0000001F E80100                      call explode
+    28 00000022 C3                          ret
+    29                                  
+    30                                  explode:
+    31                                      ; Draw outward lines from the center to simulate an explosion
+    32 00000023 B96400                      mov cx, 100          ; Number of explosion particles
+    33                                  explode_loop:
+    34 00000026 E81700                      call draw_explosion_particle
+    35 00000029 E2FB                        loop explode_loop
+    36 0000002B C3                          ret
+    37                                  
+    38                                  draw_pixel:
+    39                                      ; Draw a pixel at (x, y) position
+    40 0000002C 8B3E[0200]                  mov di, [video_offset]   ; DI = video memory offset based on x, y
+    41 00000030 B00F                        mov al, 0x0F             ; Color for the firework (white)
+    42 00000032 268805                      mov es:[di], al          ; Write to video memory
+    43 00000035 C3                          ret
+    44                                  
+    45                                  clear_pixel:
+    46                                      ; Clear the pixel at the current position (reset to background color)
+    47 00000036 8B3E[0200]                  mov di, [video_offset]   ; Calculate the same offset
+    48 0000003A B000                        mov al, 0x00             ; Background color (black)
+    49 0000003C 268805                      mov es:[di], al          ; Clear the pixel
+    50 0000003F C3                          ret
+    51                                  
+    52                                  ; draw_explosion_particle:
+    53                                  ;     ; Draw one explosion particle (random direction)
+    54                                  ;     ; You would calculate random directions and plot pixels based on that
+    55                                  ;     ; Simulate by drawing random pixels in the surrounding area
+    56                                  ;     mov di, [video_offset]   ; Calculate video offset for explosion
+    57                                  ;     mov al, 0x0F             ; White color for explosion particle
+    58                                  ;     mov es:[di], al          ; Write pixel to video memory
+    59                                  ;     ret
+    60                                  
+    61                                  draw_explosion_particle:
+    62                                      ; Draw explosion particles randomly
+    63                                      ; Calculate random directions for particles
+    64 00000040 B82800                      mov ax,  40      ; Get a random value for x and y
+    65 00000043 8B3E[0200]                  mov di, [video_offset]    ; Calculate the video memory offset
+    66 00000047 B00F                        mov al, 0x0F              ; Color (white for explosion)
+    67 00000049 268805                      mov es:[di], al           ; Write the pixel
+    68 0000004C C3                          ret
+    69                                  
+    70                                  
+    71                                  delay:
+    72                                      ; Simple delay loop for animation effect
+    73 0000004D B9FFFF                      mov cx, 0xFFFF
+    74                                  delay_loop:
+    75 00000050 90                          nop                      ; No operation (wastes time)
+    76 00000051 E2FD                        loop delay_loop
+    77 00000053 C3                          ret
+    78                                  
+    79                                  set_palette:
+    80                                      ; Set color palette for fireworks (optional, based on your needs)
+    81 00000054 C3                          ret
+    82                                  
+    83                                  exit:
+    84                                  
+    85 00000055 EBAD                        jmp start
+    86                                      ; Reset video mode to text mode (03h)
+    87 00000057 B80300                      mov ax, 0x03
+    88 0000005A CD10                        int 0x10
+    89 0000005C B8004C                      mov ax, 0x4C00
+    90 0000005F CD21                        int 0x21

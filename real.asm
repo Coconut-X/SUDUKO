@@ -19,11 +19,10 @@ SET_PALLETTE:
      ;WHITE
     MOV al,63
     OUT dx,al
-    MOV al,59
+    MOV al,59 
     OUT dx,al
     MOV al,59
     OUT dx,al
-
 
     ;baby pink
     MOV al,61
@@ -136,7 +135,7 @@ START:
 
     CALL SET_PALLETTE
  
-    ;CALL MENUU
+    CALL MENUU
 
     mov ax, 0x12
     int 10h
@@ -175,11 +174,11 @@ START:
     STI
 
 
-    ; ;hook divide by zero interrupt
-    ; MOV AX, 0
-    ; MOV ES, AX
-    ; MOV WORD [ES:0],  DIVIDE_BY_ZERO
-    ; MOV WORD [ES:2], CS
+    ;hook divide by zero interrupt
+    MOV AX, 0
+    MOV ES, AX
+    MOV WORD [ES:0],  DIVIDE_BY_ZERO
+    MOV WORD [ES:2], CS
 
 
     MOV DX,START
@@ -192,23 +191,22 @@ START:
 
     call correctSound
 
+    mov ah,0
+    int 16h
 
     CALL generateBoard
-    
 
     CALL COPY_TO_SOLUTION
 
     PUSH WORD [toRemove]
+    
     CALL REMOVE_N_NUMBERS
     
+    CALL SET_FREQUENCY
 
     CALL DRAW_ALL_PINK_BOXES
     
-    CALL SET_FREQUENCY
-    
-    
-    CALL DRAW_GRID
-                                       ;DRAW GRID, VERTICAL AND HORIZONTAL LINES
+    CALL DRAW_GRID                          ;DRAW GRID, VERTICAL AND HORIZONTAL LINES
 
 
     PUSH WORD 18

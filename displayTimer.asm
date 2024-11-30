@@ -1,3 +1,5 @@
+%include "displayGrid.asm"
+
 global minute_unit, minute_tens, seconds_unit, seconds_tens
 
 minute_unit:    db  0
@@ -14,6 +16,8 @@ DRAW_TIME:
     MOV BP, SP
     PUSH ES
     PUSHA
+
+    ;CALL DRAW_SELECTED_BOX_OUTLINE
 
     ;SET CURSOR POSITION COLUMN 70 ROW 1
     mov ah, 02h
@@ -35,7 +39,7 @@ DRAW_TIME:
     mov ah, 09h
     mov al, [cs:minute_unit]
     mov bh, 0
-    mov bl, 12
+    mov bl, 0X7
     mov cx, 1
     INT 10h
 
@@ -58,7 +62,7 @@ DRAW_TIME:
     mov ah, 09h
     mov al, [cs:minute_tens]
     mov bh, 0
-    mov bl, 12
+    mov bl, 0X7
     mov cx, 1
     int 10h
 
@@ -74,7 +78,7 @@ DRAW_TIME:
     mov al, ':'
     mov ah, 09h
     mov bh, 0
-    mov bl, 12
+    mov bl, 0X7
     mov cx, 1
     INT 10h
 
@@ -84,7 +88,6 @@ DRAW_TIME:
     mov ah, 0
     mov bl, 10                          ; Load 10 into register BL
     div bl                              ; Divide by 10, AL = remainder (units), AH = quotient (tens)
-
     add al, 0x30                        ; Convert units to ASCII
     mov [cs:seconds_unit], al           ; Save units digit
 
@@ -100,7 +103,7 @@ DRAW_TIME:
     mov ah, 09h
     mov al, [cs:seconds_unit]
     mov bh, 0
-    mov bl, 12
+    mov bl, 0X7
     mov cx, 1
     INT 10h
 
@@ -126,9 +129,11 @@ DRAW_TIME:
     mov ah, 09h
     mov al, [cs:seconds_tens]
     mov bh, 0
-    mov bl, 12
+    mov bl, 0X7
     mov cx, 1
     INT 10h
+
+
 
     POPA
     POP ES

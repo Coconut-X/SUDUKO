@@ -58,7 +58,6 @@ start:
     out dx,al
     mov dx,0x3c9
 
-   
 
     ;baby pink
     mov al,63
