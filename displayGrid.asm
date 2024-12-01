@@ -447,8 +447,6 @@ SAVE_IN_STACK:
     MOV WORD [stack+SI+4], AX
     ADD WORD [stackTop], 6
 
-    ;MOV WORD 
-
     POPA
 RET
 
@@ -474,29 +472,15 @@ CALCULATE_BYTE:
     MUL BX
     ;AX CONTAINS THE INDEX OF FIRST NOTE OF THE SELECTED BOX
     MOV DI,AX
-    ; ;PUSH DI
-    ; ;CALL printnum
-    ; ; MOV AH,00
-    ; ; INT 16H
-    ; ;==STORE IN STACK==
-    ; MOV SI,[stackTop]
-    ; MOV WORD [stack+SI], DI
-    ; ;ADD WORD [stackTop], 2
-    ; ;STORE SELECTED X AND Y INDEX IN STACK
-    ; MOV AX,[selected_x]
-    
-    ; MOV WORD [stack+SI+2], AX
-    ; MOV AX,[selected_y]
-    ; MOV WORD [stack+SI-4], AX
-    ; ADD WORD [stackTop], 6 ;
-    ;================
-
+   
     MOV AX, [numPressed]
     SHL AX, 1
     SUB AX, 2
     ADD DI, AX
     ADD AX, 2
     SHR AX, 1
+
+    ;DI CONTAINS THE INDEX OF THE ENTERED NOTE IN THE SELECTED BOX
 
     MOV WORD [notes1+DI], AX
 
@@ -583,7 +567,103 @@ CALCULATE_BYTE:
 RET
 
 ;====================================================================================================================================================================
+
+
+
+printnumm: push bp 
+ mov bp, sp 
+ push es 
+ push ax 
+ push bx 
+ push cx 
+ push dx 
+ push di 
+
+
+ 
+ ;mov es, ax ; point es to video base 
+ mov ax, [bp+4] ; load number in ax 
+ mov bx, 10 ; use base 10 for division 
+ mov cx, 0 ; initialize count of digits 
+nextdigitt: mov dx, 0 ; zero upper half of dividend 
+ div bx ; divide by 10 
+ add dl, 0x30 
+ push dx ; save ascii value on stack
+ inc cx ; increment count of values 
+ cmp ax, 0 ; is the quotient zero 
+ jnz nextdigitt ; if no divide it again 
+ mov di, 0
+
+    MOV AH,02h
+    MOV BH,0
+    MOV DH,[bp+6]
+    MOV DL,[bp+8]
+    INT 10h
+
+ nextposs: 
+
+    POP AX                                    ;LOAD CHARACTER TO DISPLAY
+    MOV AH, 0Eh                                     ;DRAW AT CURSOR POSITION
+    ;ADD AL, 48
+    MOV BH, 0
+    MOV BL, 0X4
+    INT 10h
+
+
+ loop nextposs ; repeat for all digits on stack
+
+    call correctSound
+
+ pop di 
+ pop dx 
+ pop cx 
+ pop bx 
+ pop ax 
+ pop es 
+ pop bp 
+ ret 6
+
+
+UNHOOK_TIMER:
+    PUSH BP
+    MOV BP, SP
+
+    MOV AX, 0
+    MOV ES, AX
+    CLI
+    MOV AX, [old_timer]
+    MOV WORD [ES:8*4], AX
+    MOV AX, [old_timer+2]
+    MOV WORD [ES:8*4+2], AX
+    STI
+
+    POP BP
+RET
+
+UNHOOK_KEYBOARD:
+
+    PUSH BP
+    MOV BP, SP
+
+    MOV AX, 0
+    MOV ES, AX
+    CLI
+    MOV AX, [old_kbisr]
+    MOV WORD [ES:9*4], AX
+    MOV AX, [old_kbisr+2]
+    MOV WORD [ES:9*4+2], AX
+    STI
+
+    POP BP
+    MOV SP, BP
+RET
+
+
 GAME_WON:
+
+    ;CALL UNHOOK_TIMER
+
+    MOV BYTE[hasGameEnded], 1
 
     CALL clear_screen
 
@@ -599,12 +679,31 @@ GAME_WON:
     PUSH WORD game_won
     CALL PRINT_STRING
 
+    ;DISPLAY SCORE
+    PUSH WORD 9
+    PUSH WORD 35
+    PUSH WORD 14
+    PUSH WORD score
+    CALL PRINT_STRING
 
+    PUSH WORD 42
+    PUSH WORD 14
+    PUSH WORD [currenScore]
+    CALL printnumm
 
+   CALL DISPLAY_FIREWORK
 
 RET
 
+
+
 GAME_LOST:
+
+    ;CALL UNHOOK_TIMER
+    ;CALL UNHOOK_KEYBOARD
+
+    MOV BYTE[hasGameEnded], 1
+
 
     CALL clear_screen
 
@@ -620,7 +719,17 @@ GAME_LOST:
     PUSH WORD game_lost
     CALL PRINT_STRING
 
-    ;JMP START
+    PUSH WORD 9
+    PUSH WORD 35
+    PUSH WORD 14
+    PUSH WORD score
+    CALL PRINT_STRING
+
+    PUSH WORD 42
+    PUSH WORD 14
+    PUSH WORD [currenScore]
+    CALL printnumm
+
 
 RET
 

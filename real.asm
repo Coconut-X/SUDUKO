@@ -10,6 +10,48 @@ jmp START
 %include "frontScreen.asm"
 ;------------------------------------------------------------------------------------------------------------------
 
+
+RESTART:
+    ;SET ALL NOTES1 ARRAY TO 0
+    MOV CX,729
+    MOV SI,0
+    
+    resetNotes:
+        MOV WORD [notes1+SI],0
+        ADD SI,2
+    LOOP resetNotes
+
+    ;SET ALL BOARDS ARRAY TO 0
+    MOV CX,81
+    MOV SI,0
+    resetBoards:
+        MOV WORD [sudokuArray+SI],0
+        MOV WORD [solutionArray+SI],0
+        ADD SI,2
+    LOOP resetBoards
+
+    MOV WORD [currenScore],50
+    MOV WORD [hintCount],3
+    MOV WORD [mistakeCount],0
+    MOV WORD [toRemove],30
+    MOV WORD [selected_x],8
+    MOV WORD [selected_y],8
+    MOV WORD [selected_x_index],0
+    MOV WORD [selected_y_index],0
+
+    MOV BYTE [minute_unit],0
+    MOV BYTE [minute_tens],0
+    MOV BYTE [seconds_unit],0
+    MOV BYTE [seconds_tens],0
+    MOV BYTE [minutes],0
+    MOV BYTE [seconds],0
+    MOV WORD [tickcount],0
+
+    MOV BYTE [hasGameEnded],0
+
+RET
+
+
 SET_PALLETTE:
     MOV AL,0x0
     MOV dx,0x3c8
@@ -42,11 +84,18 @@ SET_PALLETTE:
     OUT dx,al
 
     ;ORANGE
-    MOV al,63
+    ; MOV al,63
+    ; OUT dx,al
+    ; MOV al,28
+    ; OUT dx,al
+    ; MOV al,16
+    ; OUT dx,al
+    ;PURPLE LIGHT
+    MOV al,00
     OUT dx,al
-    MOV al,28
+    MOV al,7
     OUT dx,al
-    MOV al,16
+    MOV al,50
     OUT dx,al
 
 
@@ -84,16 +133,14 @@ SET_PALLETTE:
 
     MOV al,63
     OUT dx,al
-    MOV al,0
+    MOV al,10
     OUT dx,al
-    MOV al,63
+    MOV al,55
     OUT dx,al
-
-    
-
 
 RET
 
+firework: db 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x40, 0x00, 0x00, 0x44, 0x48, 0x00, 0x00, 0x44, 0x48, 0x00, 0x0c, 0x20, 0x10, 0x30, 0x06, 0x21, 0x10, 0x60, 0x23, 0x11, 0x20, 0xc4, 0x11, 0x91, 0x21, 0x88, 0x08, 0xc1, 0x03, 0x10, 0x00, 0x61, 0x06, 0x00, 0x00, 0x31, 0x0c, 0x18, 0x0c, 0x19, 0x18, 0x60, 0x03, 0x0d, 0x31, 0x80, 0x70, 0xc7, 0x60, 0x0e, 0x00, 0x07, 0xe0, 0x00, 0x00, 0x03, 0xff, 0xe0, 0x07, 0xff, 0xc0, 0x00, 0x00, 0x07, 0xe0, 0x00, 0x70, 0x06, 0xe1, 0x8e, 0x00, 0xcc, 0xb0, 0x60, 0x03, 0x18, 0x98, 0x18, 0x0c, 0x30, 0x8c, 0x00, 0x00, 0x60, 0x86, 0x00, 0x08, 0xc8, 0x93, 0x10, 0x11, 0x88, 0x91, 0x88, 0x23, 0x10, 0x88, 0xc4, 0x06, 0x10, 0x88, 0x60, 0x0c, 0x20, 0x04, 0x30, 0x00, 0x22, 0x14, 0x00, 0x00, 0x02, 0x10, 0x00, 0x00, 0x02, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00
 
 c: dw 0
 
@@ -129,6 +176,8 @@ START:
 
     CALL clear_320
 
+
+    
     MOV AX,0XA000
     MOV ES,AX
     CALL print_welcome_screen
@@ -188,7 +237,7 @@ START:
    
   
     ;-------------------------------------
-
+ 
     call correctSound
 
     mov ah,0
@@ -218,8 +267,13 @@ START:
     call DRAW__ALL_BOX_NOTES
     
     CALL TIMER_START
+
+    CALL DRAW_9_PURPLE_BOXES_BEHIND_FREQ
     
     CALL DRAW_AVAILABLE_NUMBERS
+
+
+    CALL DRAW_CARDS_OUTLINE
 
     CALL DISPLAY_SIDE_SCREEN
 

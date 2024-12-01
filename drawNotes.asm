@@ -430,7 +430,7 @@ DRAW_PURPLE_BOX:
         JZ end_purple_box
         current_Rr:
             
-            MOV AL,0x15
+            MOV AL,0x3
             INT 10h
             INC CX
             INC DI

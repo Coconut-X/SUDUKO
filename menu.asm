@@ -18,7 +18,7 @@ G2: DB '2. UNIQUE ELEMENTS IN EACH ROW'
 G3: DB '3. UNIQUE ELEMENTS IN EACH COLUMN'
 G4: DB '4. UNIQUE ELEMENTS IN EACH SUBGRID'
 G5: DB '5. YOU HAVE THREE HINTS'
-G6: DB '6. YOU HAVE THREE1 MISTAKES'
+G6: DB '6. YOU HAVE THREE MISTAKES'
 G7: DB 'PRESS DOWN KEY TO GO BACK'
 
 GO: DB 0
@@ -142,6 +142,13 @@ KEY_UP:
     JMP NO_KEY
 
 KEY_DOWN:
+
+    MOV AX,0XA000
+    MOV ES,AX
+    CALL print_welcome_screen
+
+    CALL SET_PALLETTE
+
     CMP WORD [cs:POINTER_Y], 56+16*4
     JE NO_KEY
     ADD WORD [cs:POINTER_Y], 16
@@ -402,22 +409,13 @@ nextdigit: mov dx, 0 ; zero upper half of dividend
  jnz nextdigit ; if no divide it again 
  mov di, 0
 
-
-
- 
     MOV AH,02h
     MOV BH,0
     MOV DH,07
     MOV DL,67
     INT 10h
 
-
- nextpos: ;pop dx ; remove a digit from the stack 
- ;mov dh, 0x07 ; use normal attribute 
- ;mov [es:di], dx ; print char on screen 
- ;add di, 2 ; move to next screen location 
-
-
+ nextpos: 
 
     POP AX                                    ;LOAD CHARACTER TO DISPLAY
     MOV AH, 0Eh                                     ;DRAW AT CURSOR POSITION

@@ -160,11 +160,17 @@ no_minute_increment:
     
 RET
 
+hasGameEnded: dw 0
 
 incrementTimer:
     push ax
-                                            ; Increment tick count and check if 18 ticks passed (approximately 1 second)
-    inc word [cs:tickcount]
+
+    cmp byte [cs:hasGameEnded], 1
+    je noInc                                        
+    inc word [cs:tickcount] ; Increment tick count and check if 18 ticks passed (approximately 1 second)
+
+
+    noInc:
     cmp word [cs:tickcount], 18
     jl no_second_increment                  ; If tickcount < 18, skip second increment
 
@@ -182,11 +188,19 @@ no_second_increment:
     
 IRET
 
+old_timer: dd 0
 
 TIMER_START:
 
     xor ax, ax 
     mov es, ax                              ; point es to IVT base 
+
+    mov ax, [es:8*4]                        ; save old timer vector
+    mov [cs:old_timer], ax
+
+    XOR AX, AX
+    MOV ES, AX
+
     cli                                     ; disable interrupts 
     mov word [es:8*4], incrementTimer       ; store offset at n*4 
     mov [es:8*4+2], cs                      ; store segment at n*4+2 

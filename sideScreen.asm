@@ -3,7 +3,7 @@ exit: db "EXIT"
 mistakes: db "MISTAKES: ",0
 undo: db "UNDO"
 timer: db "TIMER:"
-score:db "SCORE:"
+score:db "SCORE:   "
 temp: db 0
 level: db "DIFFICULTY: "
 easy: db "EASY",0
@@ -148,12 +148,11 @@ DISPLAY_SCORE:
     MOV BP,SP
     PUSHA
 
-    PUSH WORD 5
+    PUSH WORD 6
     PUSH WORD 55
     PUSH WORD 7
     PUSH WORD score
     CALL PRINT_STRING
-
 
     PUSH WORD [currenScore]
     CALL printnum
@@ -278,12 +277,141 @@ DISPLAY_SIDE_SCREEN:
     PUSH undoButton
     CALL printfont
 
+
+
+; OL:
+
+; MOV CX,7
+
+; I1:
+
+;     PUSH WORD 400
+;     PUSH WORD 450
+;     CALL DRAW_PEACH_BOX
+
+;     PUSH WORD 400
+;     PUSH WORD 510
+;     CALL DRAW_PEACH_BOX
+
+;     PUSH WORD 400
+;     PUSH WORD 560
+;     CALL DRAW_PEACH_BOX
+
+;     ;CALL correctSound
+
+; LOOP I1
+
+
+; MOV CX,7
+
+; I2:
+;     push WORD 450
+;     PUSH WORD 400
+;     PUSH WORD 32
+;     PUSH WORD 32
+;     PUSH WORD 0X2
+;     push firework
+;     CALL printfont
+
+;     push WORD 510
+;     PUSH WORD 400
+;     PUSH WORD 32
+;     PUSH WORD 32
+;     PUSH WORD 0X2
+;     push firework
+;     CALL printfont
+
+;     push WORD 560
+;     PUSH WORD 400
+;     PUSH WORD 32
+;     PUSH WORD 32
+;     PUSH WORD 0X2
+;     push firework
+;     CALL printfont
+
+; LOOP I2
+
+; JMP OL
+
+;CALL DISPLAY_FIREWORK 
+   
+
     CALL DISPLAY_HINT_COUNT
 
     POPA
     MOV SP,BP
     POP BP
 RET
+
+DISPLAY_FIREWORK:
+
+MOV CX,50
+PUSH CX
+
+OL:
+
+MOV CX,7
+
+I1:
+
+    PUSH WORD 300
+    PUSH WORD 250
+    CALL DRAW_PEACH_BOX
+
+    PUSH WORD 300
+    PUSH WORD 310
+    CALL DRAW_PEACH_BOX
+
+    PUSH WORD 300
+    PUSH WORD 360
+    CALL DRAW_PEACH_BOX
+
+    ;CALL correctSound
+
+LOOP I1
+
+
+MOV CX,7
+
+I2:
+    push WORD 250
+    PUSH WORD 300
+    PUSH WORD 32
+    PUSH WORD 32
+    PUSH WORD 0X2
+    push firework
+    CALL printfont
+
+    push WORD 310
+    PUSH WORD 300
+    PUSH WORD 32
+    PUSH WORD 32
+    PUSH WORD 0X2
+    push firework
+    CALL printfont
+
+    push WORD 370
+    PUSH WORD 300
+    PUSH WORD 32
+    PUSH WORD 32
+    PUSH WORD 0X2
+    push firework
+    CALL printfont
+
+
+    CALL DRAW_TIME
+
+LOOP I2
+
+
+
+POP CX
+LOOP OL
+
+RET 
+
+
+
 
 DISPLAY_HINT_COUNT:
     PUSHA

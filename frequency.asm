@@ -88,7 +88,7 @@ DRAW_FREQ_LARGE:
             jz exitDraw_Bitmap_F
             cmp byte[si], 1
             jnz skip_Print_F
-            mov al, 0x7 
+            mov al, 0x2 
             int 10h
             skip_Print_F:
                 inc cx
@@ -181,7 +181,7 @@ DRAW_FREQUENCY:
     MOV DI, 0
 
     Draw_Frequency_Loop:
-        PUSH WORD 460
+        PUSH WORD 470
         PUSH BX
 
         MOV SI,[frequency+DI]
@@ -199,6 +199,102 @@ DRAW_FREQUENCY:
     POPA
     MOV SP, BP
     POP BP
+
+
+RET
+
+
+DRAW_9_PURPLE_BOXES_BEHIND_FREQ:
+
+    PUSH BP
+    MOV BP, SP
+    PUSHA
+
+    MOV BX, 8
+    MOV CX, 9
+    MOV DI, 0
+
+    Draw_9_Purple_Loop:
+        PUSH WORD 420
+        PUSH BX
+        ;MOV SI, 0x0A
+        ;PUSH SI
+        CALL DRAW_PURPLE_BOX
+        ADD BX, 45
+        ADD DI, 2
+        LOOP Draw_9_Purple_Loop
+
+    POPA
+    MOV SP, BP
+    POP BP
+
+RET
+
+
+DRAW_CARDS_OUTLINE:
+
+;LEFT SIDE
+    MOV BX ,417
+
+    MOV CX,4
+    MOV DX,7
+
+    LEFT_BORDER:
+
+    push word DX
+    push word BX
+    push word 45
+    call DRAW_VERTICAL_LINE
+
+    INC DX
+    LOOP LEFT_BORDER
+
+;RIGHT SIDE
+
+MOV CX,4
+MOV DX,412
+
+    RIGHT_BORDER:
+
+    push word DX
+    push word BX
+    push word 45
+    call DRAW_VERTICAL_LINE
+
+    DEC DX
+    LOOP RIGHT_BORDER
+
+
+MOV BX, 8
+MOV CX,4
+MOV DX,417
+
+    TOP_BORDER:
+
+    push word BX
+    push word DX
+    push word 405
+    call DRAW_HORIZONTAL_LINE
+
+    INC DX
+    LOOP TOP_BORDER
+
+MOV BX, 8
+MOV CX,4
+MOV DX,462
+
+    BOTTOM_BORDER:
+
+    push word BX
+    push word DX
+    push word 405
+    call DRAW_HORIZONTAL_LINE
+
+    DEC DX
+    LOOP BOTTOM_BORDER
+
+
+
 
 
 RET
